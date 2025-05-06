@@ -188,56 +188,101 @@ export default function RollCall({ }: Props) {
         }
         setLoading(false);
     }
-
+    const clickAbsent =async()=>{
+        router.push({
+            pathname: '/classDetail/rollCall/absence',
+            params: {
+                subjectId: subjectId,
+                code: code
+            }
+        })
+    }
     return (
-        <View>
-            <Loading loading={loading} />
-           <View className=' shadow-md  pb-[1.8%] bg-blue_primary flex-row  pt-[12%] px-[4%] items-center '>
+      <View>
+        <Loading loading={loading} />
+        <View className=" shadow-md  pb-[1.8%] bg-blue_primary flex-row  pt-[12%] px-[4%] items-center ">
           <TouchableOpacity onPress={router.back}>
-            <Ionicons name='chevron-back-sharp' size={24} color='white' />
+            <Ionicons name="chevron-back-sharp" size={24} color="white" />
           </TouchableOpacity>
-          <View className='mx-auto items-center pr-6'>
-            <Text className='text-[18px] font-msemibold uppercase text-white'>
+          <View className="mx-auto items-center pr-6">
+            <Text className="text-[18px] font-msemibold uppercase text-white">
               {code}
             </Text>
-            <Text className='mt-[-3px] text-white font-mmedium'>
-              Điểm danh
-            </Text>
+            <Text className="mt-[-3px] text-white font-mmedium">Điểm danh</Text>
           </View>
         </View>
-        <Text className=' text-center text-base font-semibold mt-[4%]'>Danh sách các buổi học</Text>
-            {attends.length>0&&<Text className='font-medium text-blue_primary text-center -mt-[2px]'>Đã vắng {absent}/{totalRollCall} buổi</Text>}
-            <ScrollView className='mt-3'>
-                {   attends.length==0?<View className='flex-1 items-center justify-center h-full'>
-          <Text className='text-gray-500'>Không tìm thấy</Text>
-          </View> 
-          :
-          attends.map((item, index) => (
-                    item.status == "Chưa điểm danh" ?
-                        <TouchableOpacity key={index} onPress={() => clickRollCall(item)} className='flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3'>
-                            <View className='mx-auto items-center justify-center'>
-                                <Text>Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}</Text>
-                                <Text className='text-[#FE3535] text-base font-mmedium mt-1'>Chưa điểm danh</Text>
-                            </View>
-                            <FontAwesome6 name="exclamation" size={22} color="#FE3535" />
-                        </TouchableOpacity>
-                        : (item.status == "Đã điểm danh" ?
-                            <View key={index} className='flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3'>
-                                <View className='mx-auto items-center justify-center'>
-                                    <Text>Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}</Text>
-                                    <Text className='text-green text-base font-mmedium mt-1'>Đã điểm danh</Text>
-                                </View>
-                            </View>
-                            :
-                            <View key={index} className='flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3'>
-                                <View className='mx-auto items-center justify-center'>
-                                    <Text>Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}</Text>
-                                    <Text className='text-orange text-base font-mmedium mt-1'>Hết hạn điểm danh</Text>
-                                </View>
-                            </View>
-                        )
-                ))}
-            </ScrollView>
+        <View className='px-[6%] mt-[4%]'>
+            <View className='flex-row justify-between items-center'>
+                <Text className="text-base font-semibold">
+            Danh sách các buổi học
+          </Text>
+          <TouchableOpacity onPress={clickAbsent}>
+            <Text className="text-orange underline font-medium">Xin vắng</Text>
+          </TouchableOpacity>
+            </View>
+          
+          {attends.length > 0 && (
+            <Text className="font-medium text-blue_primary -mt-[2px]">
+              Đã vắng {absent}/{totalRollCall} buổi
+            </Text>
+          )}
         </View>
-    )
+
+        <ScrollView className="mt-3">
+          {attends.length == 0 ? (
+            <View className="flex-1 items-center justify-center h-full">
+              <Text className="text-gray-500">Không tìm thấy</Text>
+            </View>
+          ) : (
+            attends.map((item, index) =>
+              item.status == "Chưa điểm danh" ? (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => clickRollCall(item)}
+                  className="flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3"
+                >
+                  <View className="mx-auto items-center justify-center">
+                    <Text>
+                      Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}
+                    </Text>
+                    <Text className="text-[#FE3535] text-base font-mmedium mt-1">
+                      Chưa điểm danh
+                    </Text>
+                  </View>
+                  <FontAwesome6 name="exclamation" size={22} color="#FE3535" />
+                </TouchableOpacity>
+              ) : item.status == "Đã điểm danh" ? (
+                <View
+                  key={index}
+                  className="flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3"
+                >
+                  <View className="mx-auto items-center justify-center">
+                    <Text>
+                      Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}
+                    </Text>
+                    <Text className="text-green text-base font-mmedium mt-1">
+                      Đã điểm danh
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <View
+                  key={index}
+                  className="flex-row bg-white w-[90%] mx-auto py-2 rounded-2xl items-center justify-end px-5 mb-3"
+                >
+                  <View className="mx-auto items-center justify-center">
+                    <Text>
+                      Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}
+                    </Text>
+                    <Text className="text-orange text-base font-mmedium mt-1">
+                      Hết hạn điểm danh
+                    </Text>
+                  </View>
+                </View>
+              )
+            )
+          )}
+        </ScrollView>
+      </View>
+    );
 }

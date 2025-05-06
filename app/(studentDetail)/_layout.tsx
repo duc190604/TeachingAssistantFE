@@ -14,10 +14,11 @@ export default function StudentDetailLayout({}: Props) {
         <Stack.Screen name='classDetail/detailReview' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/listRoom' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/generalRoom' options={{headerShown: false,}}/>
-        <Stack.Screen name='classDetail/rollCall' options={{headerShown: false,}}/>
+        <Stack.Screen name='classDetail/rollCall/rollCall' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/document' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/detailDocument' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/discussionRoom' options={{headerShown: false,}}/>
+        <Stack.Screen name='classDetail/rollCall/absence' options={{headerShown: false,}}/>
     </Stack>
   )
 }

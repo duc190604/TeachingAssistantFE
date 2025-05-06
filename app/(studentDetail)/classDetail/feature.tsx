@@ -25,7 +25,7 @@ export default function Feature({ }: Props) {
   const [loading, setLoading] = useState(false)
   const rollCall=async()=>{
     router.push({
-      pathname: '/classDetail/rollCall', 
+      pathname: '/classDetail/rollCall/rollCall', 
       params: {
         subjectId:subjectId,
         name:name,

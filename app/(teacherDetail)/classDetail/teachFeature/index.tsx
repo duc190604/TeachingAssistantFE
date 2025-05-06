@@ -53,9 +53,9 @@ export default function TeachFeature({}: Props) {
    useEffect(() => {
       getQuestionResolved();
    }, []);
-   const rollCall = async () => {
+   const attendence = async () => {
       router.push({
-         pathname: "/classDetail/teachFeature/rollCall",
+         pathname: "/(teacherDetail)/classDetail/teachFeature/attendance/menuAttendance",
          params: {
             subjectId: subjectId,
             name: name,
@@ -164,8 +164,8 @@ export default function TeachFeature({}: Props) {
              {formatNoWeekday(date)}
            </Text>
          </View>
-            <TouchableOpacity onPress={deleteAttend}>
-            <AntDesign name="delete" size={24} color="white" />
+         <TouchableOpacity onPress={deleteAttend}>
+           <AntDesign name="delete" size={24} color="white" />
          </TouchableOpacity>
        </View>
        <View>
@@ -179,12 +179,16 @@ export default function TeachFeature({}: Props) {
            </Text>
          </TouchableOpacity>
          <TouchableOpacity
-           onPress={rollCall}
+           onPress={attendence}
            className="flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3   "
          >
-           <FontAwesome6 name="calendar-check" size={24} color="black" />
+           <MaterialCommunityIcons
+             name="clipboard-list-outline"
+             size={24}
+             color="black"
+           />
            <Text className="text-base font-msemibold ml-4 mr-auto">
-             Điểm danh
+             Chuyên cần
            </Text>
          </TouchableOpacity>
          <TouchableOpacity
