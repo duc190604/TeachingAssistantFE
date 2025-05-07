@@ -665,7 +665,7 @@ export default function RollCall({}: Props) {
                         onValueChange={(a) => setAcceptedNumberPick(a)}
                       >
                         {Array.from({ length: numberOfAttend }).map((item, index) => (
-                        <Picker.Item label={`${index + 1} lần`} value={index + 1} />
+                        <Picker.Item key={index} label={`${index + 1} lần`} value={index + 1} />
                         ))}
                       </Picker>
                     </View>
