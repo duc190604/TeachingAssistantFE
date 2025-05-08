@@ -20,7 +20,9 @@ export type Attend = {
     status: string,
     sessionNumber:number,
     teacherLatitude:number,
-    teacherLongitude:number
+    teacherLongitude:number,
+    numberOfAttend:number,
+    acceptedNumber:number
 }
 export default function RollCall({ }: Props) {
     const authContext = useContext(AuthContext);
@@ -47,19 +49,37 @@ export default function RollCall({ }: Props) {
 
             if (res && res.status == 200 && res2 && res2.status == 200) {
                 const listAttend = res.data.cAttends;
-                const listReview = res2.data.attendRecords.filter((item: any) => item.status != "KP");
+                const listRecord = res2.data.attendRecords
                 let totalRollCall = 0;
                 let absent = 0;
                 const data = listAttend.map((item: any) => {
                     if (item.isActive) {
                         totalRollCall++;
-                        let status = "Chưa điểm danh";
-                        if (item.timeExpired == 0) {
-                            status = "Hết hạn điểm danh";
+                        let status = "";
+                        const record = listRecord.find((record: any) => record.cAttendId.id == item.id)
+                        if(record){
+                          const number=record.listStatus.filter((item:any)=>item.status=="CM").length
+                          if(record.status == "CP"){
+                            status = "Vắng có phép";
+                          }
+                          else if(!record.listStatus[item.numberOfAttend].status && item.timeExpired > 0){
+                            status = "Chưa điểm danh";
+                          } 
+                          else {
+                            status = `Đã điểm danh ${number}/${item.numberOfAttend}`;
+                            if(number<item.acceptedNumber){
+                              absent++;
+                            }
+                          }
                         }
-                        status = listReview.find((review: any) => review.cAttendId.id == item.id) ? "Đã điểm danh" : status
-                        if (status != "Đã điểm danh") {
+                        else{
+                          if(item.timeExpired > 0){
+                            status = "Chưa điểm danh";
+                          }
+                          else{
+                            status = `Đã điểm danh 0/${item.numberOfAttend}`
                             absent++;
+                          }
                         }
                         return {
                             id: item.id,
@@ -67,7 +87,9 @@ export default function RollCall({ }: Props) {
                             status: status,
                             sessionNumber: item.sessionNumber,
                             teacherLatitude: item.teacherLatitude,
-                            teacherLongitude: item.teacherLongitude
+                            teacherLongitude: item.teacherLongitude,
+                            numberOfAttend: item.numberOfAttend || 0,
+                            acceptedNumber: item.acceptedNumber || 0
                         }
                     }
                     return null; // Trả về null nếu item không active

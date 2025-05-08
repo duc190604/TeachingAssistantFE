@@ -49,7 +49,7 @@ export default function Absence() {
   const [modalImageVisible, setModalImageVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState("");
   const getAbsenceRequests=async()=>{
-    const res=await get({url:`${localHost}/api/v1/absence/teacherRequest`,token:accessToken});
+    const res=await get({url:`${localHost}/api/v1/absence/teacherRequest?subjectId=${subjectId}`,token:accessToken});
     console.log(res);
     if(res){
       if(res.status===200){

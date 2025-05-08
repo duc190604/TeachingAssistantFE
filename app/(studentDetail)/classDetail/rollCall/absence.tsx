@@ -49,7 +49,7 @@ export default function Absence() {
       date: "",
     });
     const getAbsenceRequests=async()=>{
-        const res=await get({url:`${localHost}/api/v1/absence/studentRequest`,token:accessToken});
+        const res=await get({url:`${localHost}/api/v1/absence/studentRequest?subjectId=${subjectId}`,token:accessToken});
         if(res){
           if(res.status===200){
             setAbsenceRequests(res.data.absenceRequests);
