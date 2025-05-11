@@ -53,6 +53,7 @@ export type Discussion = {
    };
    isResolved: boolean;
    reactions: Reaction[];
+   replyOf?: string;
 };
 export type Reaction = {
    type: number;
@@ -79,7 +80,7 @@ export default function DiscussionRoom() {
    const { user, accessToken } = authContext;
    const { cAttendId, sessionNumber, date, subjectId } = useLocalSearchParams();
    const scrollViewRef = useRef<ScrollView>(null);
-   const [PostList, setPostList] = useState<Discussion[]>([]);
+   const [postList, setPostList] = useState<Discussion[]>([]);
    const [isLoading, setLoading] = useState(true);
    const [isUploading, setUploading] = useState(false);
    const isFocused = useIsFocused();
@@ -124,8 +125,8 @@ export default function DiscussionRoom() {
 
    const renderPost = () => {
       const list: JSX.Element[] = [];
-      const totalMessages = PostList.length;
-
+      const tempPostList: any[] = [];
+      const totalMessages = postList.length;
       if (totalMessages == 0) {
          return (
             <Text
@@ -139,7 +140,7 @@ export default function DiscussionRoom() {
       let numberAnonymous = 0;
       for (let i = start; i < totalMessages; i++) {
          let sender = "";
-         const currentPost = PostList[i];
+         const currentPost = postList[i];
          const time = new Date(currentPost.createdAt);
          let nameAnonymous = "";
          sender = currentPost.creator.id === user?.id ? "My message" : "";
@@ -157,8 +158,8 @@ export default function DiscussionRoom() {
             nameAnonymous = `${currentPost.creator.name}- ${currentPost.creator.userCode}`;
          }
          // Hiển thị ngày nếu cần
-         if (i > 0) {
-            const previousPostTime = new Date(PostList[i - 1].createdAt);
+         if (i > 0 && postList[i].replyOf == null) {
+            const previousPostTime = new Date(postList[i - 1].createdAt);
             if (previousPostTime.getDate() !== time.getDate()) {
                list.push(
                   <Text
@@ -169,25 +170,60 @@ export default function DiscussionRoom() {
                );
             }
          }
+         tempPostList.push({
+            handleDeletePost: handleDeletePost,
+            key: currentPost.id,
+            Content: currentPost.content,
+            Time: formatTimePost(time),
+            Creator: currentPost.creator,
+            Title: currentPost.title,
+            CAttendId: cAttendId,
+            Id: currentPost.id,
+            Images: currentPost.images,
+            nameAnonymous: nameAnonymous,
+            isResolved: currentPost.isResolved,
+            reactions: currentPost.reactions || [],
+            myId: user?.id || null,
+            replyOf: currentPost.replyOf || null,
+         });
+         
+      }
+      const listFilter = tempPostList.map((item)=>{
+         if(!item.replyOf){
+         const comments = tempPostList.filter(post => post.replyOf === item.Id).map(post => ({
+            id: post.Id,
+            content: post.Content,
+            createdAt: post.Time,
+            nameAnonymous: post.nameAnonymous,
+            creator: post.Creator
+         }));
+         return {
+            ...item,
+            comments: comments
+         }
+         }
+      }).filter(item=>item)
+      listFilter.forEach(item => {
          list.push(
             <DiscussionPost
                handleDeletePost={handleDeletePost}
-               key={currentPost.id}
-               Content={currentPost.content}
-               Time={formatTimePost(time)}
-               Creator={currentPost.creator}
-               Title={currentPost.title}
-               CAttendId={cAttendId}
-               Id={currentPost.id}
-               Images={currentPost.images}
-               nameAnonymous={nameAnonymous}
-               isResolved={currentPost.isResolved}
-               reactions={currentPost.reactions}
+               key={item.key}
+               Content={item.Content}
+               Time={item.Time}
+               Creator={item.Creator}
+               Title={item.Title}
+               CAttendId={item.CAttendId}
+               Id={item.Id}
+               Images={item.Images}
+               nameAnonymous={item.nameAnonymous}
+               isResolved={item.isResolved}
+               reactions={item.reactions}
                myId={user?.id || null}
+               comments={item.comments}
+               addComment={addComment}
             />
          );
-      }
-
+      })
       return list;
    };
 
@@ -382,7 +418,15 @@ export default function DiscussionRoom() {
       const newImages = selectedImages.filter((_, i) => i !== index);
       setSelectedImages(newImages);
    };
-
+   const addComment = async (item: Discussion) => {
+      setPostList([...postList,{...item,creator:{
+         name: `${user?.name}`,
+         userCode: `${user?.userCode}`,
+         role: `${user?.role}`,
+         avatar: `${user?.avatar}`,
+         id: `${user?.id}`
+      }}])
+   }
    return (
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
          <Modal visible={visible} className="flex-1" transparent={true} animationType="fade">

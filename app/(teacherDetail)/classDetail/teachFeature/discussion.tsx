@@ -38,7 +38,6 @@ import mime from "react-native-mime-types";
 import { formatNoWeekday } from "@/utils/formatDate";
 import DiscussionPost from "@/components/student/chat/discussionPost";
 import PostDiscussionTeacher from "@/components/teacher/postDiscussionTeacher";
-
 export type Discussion = {
    cAttendId: string;
    title: string;
@@ -57,6 +56,8 @@ export type Discussion = {
    };
    isResolved: boolean;
    reactions: Reaction[];
+   comments: Comment[];
+   replyOf: string;
 };
 export type Reaction = {
    type: number;
@@ -73,6 +74,22 @@ type FormatName = {
    id: string;
    number: number;
 };
+type Comment = {
+   id: string;
+   content: string;
+   createdAt: string;
+   nameAnonymous: string;
+   creator: {
+      name: string;
+      userCode: string;
+      role: string;
+      avatar: string;
+      id: string;
+      email: string;
+      school: string;
+   };
+};
+
 export default function Discussion() {
    const authContext = useContext(AuthContext);
    const socketContext = useContext(SocketContext);
@@ -124,7 +141,7 @@ export default function Discussion() {
    const renderPost = () => {
       const list: JSX.Element[] = [];
       const totalMessages = PostList.length;
-
+      const tempPost :any[] = []
       if (totalMessages === 0) {
          return (
             <Text
@@ -152,7 +169,7 @@ export default function Discussion() {
          }
 
          // Hiển thị ngày nếu cần
-         if (i > 0) {
+         if (i > 0 && currentPost.replyOf == null) {
             const previousPostTime = new Date(PostList[i - 1].createdAt);
             if (previousPostTime.getDate() !== time.getDate()) {
                list.push(
@@ -164,26 +181,63 @@ export default function Discussion() {
                );
             }
          }
+         tempPost.push({               
+            key:currentPost.id,
+               Content:currentPost.content,
+               CAttendId:currentPost.cAttendId,
+               Time:formatTimePost(time),
+               Creator:currentPost.creator,
+               Title:currentPost.title,
+               Id:currentPost.id,
+               Images:currentPost.images,
+               nameAnonymous:nameAnonymous,
+               isResolved:currentPost.isResolved,
+               reactions:currentPost.reactions,
+               myId:user?.id || null,
+               replyOf:currentPost.replyOf
+         })
+         
+      }
+      const listFilter = tempPost.map((item:any) => {
+          if (!item.replyOf) {
+            const comments = tempPost
+              .filter((post:any) => post.replyOf === item.Id)
+              .map((post:any) => ({
+                id: post.Id,
+                content: post.Content,
+                createdAt: post.Time,
+                nameAnonymous: post.nameAnonymous,
+                creator: post.Creator,
+                
+              }));
+            return {
+              ...item,
+              comments: comments,
+            };
+          }
+        }).filter((item:any) => item);
+        console.log('listFilter: ', listFilter.length);
+      listFilter.forEach((item:any)=>{
          list.push(
             <PostDiscussionTeacher
-               handleDeletePost={handleDeletePost}
-               key={currentPost.id}
-               Content={currentPost.content}
-               CAttendId={currentPost.cAttendId}
-               Time={formatTimePost(time)}
-               Creator={currentPost.creator}
-               Title={currentPost.title}
-               Id={currentPost.id}
-               Images={currentPost.images}
-               nameAnonymous={nameAnonymous}
-               isResolved={currentPost.isResolved}
-               reactions={currentPost.reactions}
-               myId={user?.id || null}
-               handleKickStudent={kickStudent}
+            handleDeletePost={handleDeletePost}
+            key={item.Id}
+            Content={item.Content}
+            CAttendId={item.CAttendId}
+            Time={item.Time}
+            Creator={item.Creator}
+            Title={item.Title}
+            Id={item.Id}
+            Images={item.Images}
+            nameAnonymous={item.nameAnonymous}
+            isResolved={item.isResolved}
+            reactions={item.reactions}
+            myId={user?.id || null}
+            handleKickStudent={kickStudent}
+            comments={item.comments}
             />
          );
-      }
-
+      });
       return list;
    };
 
