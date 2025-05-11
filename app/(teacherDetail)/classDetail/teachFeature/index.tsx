@@ -44,7 +44,7 @@ export default function TeachFeature({}: Props) {
       });
       if (res && res.status == 200) {
          const num = res.data.discussions.reduce(
-            (acc: number, curr: any) => (curr.isResolved ? acc : acc + 1),
+            (acc: number, curr: any) => ((!curr.isResolved && curr.replyOf == null) ? acc +1 : acc),
             0
          );
          setQuestionResolved(num);

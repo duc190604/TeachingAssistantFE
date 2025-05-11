@@ -185,7 +185,7 @@ export default function Discussion() {
             key:currentPost.id,
                Content:currentPost.content,
                CAttendId:currentPost.cAttendId,
-               Time:formatTimePost(time),
+               Time:time,
                Creator:currentPost.creator,
                Title:currentPost.title,
                Id:currentPost.id,
@@ -198,6 +198,7 @@ export default function Discussion() {
          })
          
       }
+      tempPost.sort((a:any, b:any) => new Date(b.Time).getTime() - new Date(a.Time).getTime())
       const listFilter = tempPost.map((item:any) => {
           if (!item.replyOf) {
             const comments = tempPost
@@ -205,13 +206,14 @@ export default function Discussion() {
               .map((post:any) => ({
                 id: post.Id,
                 content: post.Content,
-                createdAt: post.Time,
+                createdAt: formatTimePost(post.Time),
                 nameAnonymous: post.nameAnonymous,
                 creator: post.Creator,
                 
               }));
             return {
               ...item,
+              Time: formatTimePost(item.Time),
               comments: comments,
             };
           }

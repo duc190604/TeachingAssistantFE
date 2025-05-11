@@ -142,6 +142,7 @@ export default function DiscussionRoom() {
          let sender = "";
          const currentPost = postList[i];
          const time = new Date(currentPost.createdAt);
+         console.log("messageok: ", time)
          let nameAnonymous = "";
          sender = currentPost.creator.id === user?.id ? "My message" : "";
          // Xử lý ẩn danh
@@ -170,11 +171,12 @@ export default function DiscussionRoom() {
                );
             }
          }
+         console.log("message: ", time)
          tempPostList.push({
             handleDeletePost: handleDeletePost,
             key: currentPost.id,
             Content: currentPost.content,
-            Time: formatTimePost(time),
+            Time: time,
             Creator: currentPost.creator,
             Title: currentPost.title,
             CAttendId: cAttendId,
@@ -188,21 +190,25 @@ export default function DiscussionRoom() {
          });
          
       }
+      console.log("message1: ", tempPostList[0].Time)
+     tempPostList.sort((a:any, b:any) => new Date(b.Time).getTime() - new Date(a.Time).getTime())
       const listFilter = tempPostList.map((item)=>{
          if(!item.replyOf){
          const comments = tempPostList.filter(post => post.replyOf === item.Id).map(post => ({
             id: post.Id,
             content: post.Content,
-            createdAt: post.Time,
+            createdAt: formatTimePost(post.Time),
             nameAnonymous: post.nameAnonymous,
             creator: post.Creator
          }));
          return {
             ...item,
+            Time: formatTimePost(item.Time),
             comments: comments
          }
          }
       }).filter(item=>item)
+      console.log("message2: ", listFilter[0].Time)
       listFilter.forEach(item => {
          list.push(
             <DiscussionPost

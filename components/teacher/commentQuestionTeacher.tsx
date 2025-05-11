@@ -82,7 +82,7 @@ export default function CommentQuestionTeacher({
         onLongPress={() => {
           setReactionModalVisible(true);
         }}
-        className="mt-3 w-[85%] ml-[5%] bg-gray-100 rounded-lg p-2"
+        className="mt-3 w-[90%] ml-[5%] bg-gray-100 rounded-lg p-2"
       >
         <View className="flex-row items-center">
           <Image

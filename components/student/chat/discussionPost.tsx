@@ -29,6 +29,7 @@ import { downloadImage } from "@/utils/downloadImage";
 import { SocketContext } from "@/context/SocketContext";
 import CommentQuestion from "./commentQuestion";
 import ButtonCustom from "@/components/ui/ButtonCustom";
+import { SimpleLineIcons } from "@expo/vector-icons";
 export type Comment = {
   id: string;
   content: string;
@@ -113,6 +114,7 @@ export default function DiscussionPost({
   };
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [commentContent, setCommentContent] = useState("");
+  const [showAllComments, setShowAllComments] = useState(false);
   useEffect(() => {
     resetReaction();
   }, [isResolved, reactions]);
@@ -388,7 +390,7 @@ export default function DiscussionPost({
         {isResolved && (
           <>
             <View className="border-t border-gray-200 mt-4 mx-2"></View>
-            {comments.map((item, index) => (
+            {(showAllComments ? comments : comments.slice(0, 3)).map((item, index) => (
               <CommentQuestion
                 key={index}
                 id={item.id}
@@ -400,6 +402,10 @@ export default function DiscussionPost({
                 handleDeletePost={handleDeletePost}
               />
             ))}
+            <TouchableOpacity className="items-center justify-end mt-2 flex-row -mb-2 mr-[5%]" onPress={() => setShowAllComments(!showAllComments)}>
+              <Text className="text-blue_primary mr-1 -mt-[2px]">{showAllComments ? "Thu gọn" : "Xem thêm"}</Text>
+              <SimpleLineIcons name={showAllComments ? "arrow-up" : "arrow-down"}  size={12} color={colors.blue_primary} /> 
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
                 setCommentModalVisible(true);
