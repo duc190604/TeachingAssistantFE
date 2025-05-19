@@ -7,6 +7,7 @@ type Props = {}
 export default function StudentDetailLayout({}: Props) {
   return (
     <Stack>
+        <Stack.Screen name='notification/notificationDetail' options={{headerShown: false,}}/>
         <Stack.Screen name='profileDetail/editProfile' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/feature' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/addClass' options={{headerShown: false,}}/>
