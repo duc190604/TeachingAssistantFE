@@ -70,7 +70,7 @@ export default function Cancellation({}: Props) {
     setOpenModal(false);
   }
   const getData = async () => {
-    const url = `${localHost}/api/v1/notification/classCancel/${subjectId}`;
+    const url = `${localHost}/api/v1/notification/classCancel/${subjectId}?limit=100&page=1`;
     const token = accessToken;
     const response = await get({ url, token });
     if (response) {
