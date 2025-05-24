@@ -14,7 +14,7 @@ type Props = {}
 
 export default function Verify({ }: Props) {
    
-    let{email}= useLocalSearchParams();
+    let{email, jsonInfo}= useLocalSearchParams();
     const [code, setCode] = useState('');
     const [loading,setLoading]= useState(false)
     const router = useRouter();
@@ -41,9 +41,10 @@ export default function Verify({ }: Props) {
                 }
                 if (response.status == 200) {
                     router.push({
-                        pathname: '/(auth)/forgotPassword/changePassword',
+                        pathname: '/(auth)/sign-up/signUp',
                         params: {
-                            email
+                            email,
+                            jsonInfo
                         }
                     })
                 }
@@ -56,7 +57,7 @@ export default function Verify({ }: Props) {
         }
     }
     const sendMail= async()=>{
-        const url =`${localHost}/api/v1/service/sendEmail`
+        const url =`${localHost}/api/v1/service/verifyEmail`
           const data={
             email
           }
@@ -74,10 +75,6 @@ export default function Verify({ }: Props) {
                 }else{
                   Alert.alert('Thông báo','Đã xảy ra lỗi, vui lòng thử lại sau')
                 }
-              }
-              if(response.status==404)
-              {
-                Alert.alert("Thông báo","Email chưa được tạo tài khoản")
               }
               if(response.status==200)
               {
