@@ -61,7 +61,12 @@ export default function SignUp({}: Props) {
       Alert.alert('Thông báo', 'Xác nhận mật khẩu sai');
     } else {
       setLoading(true);
-      const image = await uploadImage(info.avatar);
+      let image=''
+      if(!info.avatar)
+      {
+        image = await uploadImage(info.avatar);
+      }
+      
       if (image) {
         const url = `${localHost}/api/v1/user/register`;
         const data = {

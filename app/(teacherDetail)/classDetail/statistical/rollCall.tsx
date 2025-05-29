@@ -103,7 +103,7 @@ export default function RollCall({}: Props) {
   };
   const goToDetailRollCall = (item: DetailRollCall) => {
     router.push({
-      pathname: "/classDetail/teachFeature/rollCall",
+      pathname: "/classDetail/teachFeature/attendance/rollCall",
       params: {
         attendId: item.attendId,
         sessionNumber: item.sessionNumber,
