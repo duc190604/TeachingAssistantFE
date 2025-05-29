@@ -26,7 +26,7 @@ export default function Feature({ }: Props) {
   }
   const { user, accessToken } = authContext;
   const router = useRouter()
-  const { subjectId, name, code, joinCode } = useLocalSearchParams();
+  const { subjectId, name, code, joinCode, maxAbsences } = useLocalSearchParams();
   const [loading, setLoading] = useState(false);
   const sessions = async () => {
     router.push({
@@ -45,6 +45,7 @@ export default function Feature({ }: Props) {
         subjectId: subjectId,
         name: name,
         code: code,
+        maxAbsences: maxAbsences,
         joinCode: joinCode
       },
     });
@@ -62,6 +63,16 @@ export default function Feature({ }: Props) {
   const statistical  = async () => {
     router.push({
       pathname: '/(teacherDetail)/classDetail/statistical',
+      params: {
+        subjectId: subjectId,
+        name: name,
+        code: code
+      },
+    });
+  }
+  const notification = async () => {
+    router.push({
+      pathname: '/(teacherDetail)/classDetail/notification',
       params: {
         subjectId: subjectId,
         name: name,
@@ -142,6 +153,15 @@ export default function Feature({ }: Props) {
           <FontAwesome5 name='chalkboard-teacher' size={20} color='black' />
           <Text className='text-base font-msemibold ml-4 mr-auto'>
             Giảng dạy
+          </Text>
+          {/* <FontAwesome6 name="exclamation" size={22} color="#FE3535" /> */}
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={notification}
+          className='flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3'>
+          <FontAwesome5 name='bell' size={20} color='black' />
+          <Text className='text-base font-msemibold ml-4 mr-auto'>
+            Thông báo
           </Text>
           {/* <FontAwesome6 name="exclamation" size={22} color="#FE3535" /> */}
         </TouchableOpacity>
