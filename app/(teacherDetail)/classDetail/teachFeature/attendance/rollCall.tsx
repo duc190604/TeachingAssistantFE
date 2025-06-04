@@ -27,6 +27,7 @@ import post from "@/utils/post";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { SocketContext } from "@/context/SocketContext";
 import ListRollCall from "@/components/teacher/listRollCall";
+import { Path } from "@shopify/react-native-skia";
 
 type Props = {};
 type Student = {
@@ -187,6 +188,16 @@ export default function RollCall({}: Props) {
         if (isActive) {
           Alert.alert("Thông báo", "Chỉnh sửa điểm danh thành công");
         } else {
+           const res3 = await patch({
+             url:
+               localHost + `/api/v1/cAttend/attendRecord/markExcusedAttendance`,
+             data: {
+               subjectId: subjectId,
+               cAttendId: attendId,
+               date: date,
+             },
+             token: accessToken,
+           });
           Alert.alert("Thông báo", "Tạo điểm danh thành công");
         }
         setIsActive(true);

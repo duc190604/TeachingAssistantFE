@@ -15,6 +15,8 @@ import { AuthContext } from '@/context/AuthContext';
 import Loading from '@/components/ui/Loading';
 import deleteApi from '@/utils/delete';
 import Feather from '@expo/vector-icons/Feather';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Octicons from '@expo/vector-icons/Octicons';
 
 type Props = {}
 
@@ -50,16 +52,16 @@ export default function Feature({ }: Props) {
       },
     });
   }
-  const chat = async () => {
-    router.push({
-      pathname: '/classDetail/listRoom',
-      params: {
-        subjectId: subjectId,
-        name: name,
-        code: code
-      },
-    });
-  }
+  // const chat = async () => {
+  //   router.push({
+  //     pathname: '/classDetail/listRoom',
+  //     params: {
+  //       subjectId: subjectId,
+  //       name: name,
+  //       code: code
+  //     },
+  //   });
+  // }
   const statistical  = async () => {
     router.push({
       pathname: '/(teacherDetail)/classDetail/statistical',
@@ -131,58 +133,77 @@ export default function Feature({ }: Props) {
       { cancelable: false }
     );
   }
+  const groupManager = async () => {
+    router.push({
+      pathname: '/(teacherDetail)/classDetail/groupManager',
+      params: { subjectId: subjectId, name: name, code: code },
+    });
+  }
   return (
     <SafeAreaView>
       <Loading loading={loading} />
-      <View className=' pb-[3.5%]  border-b-[1px] border-gray-200 flex-row  pt-[13%] px-[4%] items-center bg-blue_primary '>
+      <View className=" pb-[3.5%]  border-b-[1px] border-gray-200 flex-row  pt-[13%] px-[4%] items-center bg-blue_primary ">
         <TouchableOpacity onPress={router.back}>
-          <Ionicons name='chevron-back-sharp' size={24} color='white' />
+          <Ionicons name="chevron-back-sharp" size={24} color="white" />
         </TouchableOpacity>
 
-        <Text className='mx-auto text-[18px] font-msemibold uppercase text-white'>
+        <Text className="mx-auto text-[18px] font-msemibold uppercase text-white">
           {code}
         </Text>
         <TouchableOpacity onPress={deleteClass}>
-          <MaterialIcons name='exit-to-app' size={24} color='white' />
+          <MaterialIcons name="exit-to-app" size={24} color="white" />
         </TouchableOpacity>
       </View>
       <View>
         <TouchableOpacity
           onPress={sessions}
-          className='flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-[10%]   '>
-          <FontAwesome5 name='chalkboard-teacher' size={20} color='black' />
-          <Text className='text-base font-msemibold ml-4 mr-auto'>
+          className="flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-[10%]   "
+        >
+          <FontAwesome5 name="chalkboard-teacher" size={20} color="black" />
+          <Text className="text-base font-msemibold ml-4 mr-auto">
             Giảng dạy
           </Text>
           {/* <FontAwesome6 name="exclamation" size={22} color="#FE3535" /> */}
         </TouchableOpacity>
         <TouchableOpacity
           onPress={notification}
-          className='flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3'>
-          <FontAwesome5 name='bell' size={20} color='black' />
-          <Text className='text-base font-msemibold ml-4 mr-auto'>
+          className="flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3"
+        >
+          <FontAwesome5 name="bell" size={20} color="black" />
+          <Text className="text-base font-msemibold ml-4 mr-auto">
             Thông báo
           </Text>
           {/* <FontAwesome6 name="exclamation" size={22} color="#FE3535" /> */}
         </TouchableOpacity>
         <TouchableOpacity
+          onPress={groupManager}
+          className="flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3"
+        >
+          <Octicons name="people" size={24} color="black" style={{ marginLeft: -2 }} />
+          <Text className="text-base font-msemibold ml-4 mr-auto">
+            Quản lý nhóm
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={statistical}
-          className='flex-row items-center bg-white w-[94%] mx-auto px-[7%] py-4 rounded-2xl mt-3'>
+          className="flex-row items-center bg-white w-[94%] mx-auto px-[7%] py-4 rounded-2xl mt-3"
+        >
           <MaterialCommunityIcons
-            name='clipboard-text-multiple-outline'
+            name="clipboard-text-multiple-outline"
             size={24}
-            color='black'
-            style={{marginLeft:-2}}
+            color="black"
+            style={{ marginLeft: -2 }}
           />
-          <Text className='text-base font-msemibold ml-4 mr-auto'>
+          <Text className="text-base font-msemibold ml-4 mr-auto">
             Thống kê
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={setting}
-          className='flex-row items-center bg-white w-[94%] mx-auto px-[7%] py-4 rounded-2xl mt-3'>
-          <Feather name='settings' size={24} color='black' />
-          <Text className='text-base font-msemibold ml-4 mr-auto'>Cài đặt</Text>
+          className="flex-row items-center bg-white w-[94%] mx-auto px-[7%] py-4 rounded-2xl mt-3"
+        >
+          <Feather name="settings" size={24} color="black" />
+          <Text className="text-base font-msemibold ml-4 mr-auto">Cài đặt</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

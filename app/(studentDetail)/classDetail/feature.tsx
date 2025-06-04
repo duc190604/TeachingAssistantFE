@@ -45,7 +45,7 @@ export default function Feature({ }: Props) {
   }
   const chat= async()=>{
     router.push({
-      pathname: '/classDetail/listRoom', 
+      pathname: '/classDetail/discussion/listRoom', 
       params: {
         subjectId:subjectId,
         name:name,

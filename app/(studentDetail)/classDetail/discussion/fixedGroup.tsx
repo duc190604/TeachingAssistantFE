@@ -34,16 +34,24 @@ import { SocketContext } from "@/context/SocketContext";
 import get from "@/utils/get";
 import Loading from "@/components/ui/Loading";
 import Feather from "@expo/vector-icons/Feather";
-import { EvilIcons, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  EvilIcons,
+  FontAwesome6,
+  Ionicons,
+} from "@expo/vector-icons";
 import { localHost } from "@/utils/localhost";
 import { colors } from "@/constants/colors";
 import patch from "@/utils/patch";
+import { MessageGroup } from "@/components/student/chat/messageGroup";
+import ButtonCustom from "@/components/ui/ButtonCustom";
+import deleteApi from "@/utils/delete";
 
-export type Question = {
+export type Message = {
   _id: string;
   subjectId: string;
   content: string;
-  studentId: {
+  senderId: {
     name: string;
     userCode: string;
     role: string;
@@ -52,7 +60,7 @@ export type Question = {
   };
   createdAt: string;
   type: string;
-  isResolved: boolean;
+ isRevoked: boolean;
   updatedAt: string;
   __v: string;
   id: string;
@@ -62,7 +70,7 @@ type FormatName = {
   id: string;
   number: number;
 };
-export default function GeneralRoom() {
+export default function FixedGroup() {
   const authContext = useContext(AuthContext);
   const socketContext = useContext(SocketContext);
   const router = useRouter();
@@ -70,11 +78,10 @@ export default function GeneralRoom() {
     return;
   }
   const { user, accessToken } = authContext;
-  const [listFormat, setListFormat] = useState<FormatName[]>([]);
-  const { subjectId, name, code } = useLocalSearchParams();
+  const { subjectId, name, code, group } = useLocalSearchParams();
   const scrollViewRef = useRef<ScrollView>(null);
   const [message, setMessage] = useState("");
-  const [questionList, setQuestionList] = useState<Question[]>([]);
+  const [messageList, setMessageList] = useState<Message[]>([]);
   const [isLoading, setLoading] = useState(true);
   const [isUploading, setUploading] = useState(false);
   const isFocused = useIsFocused();
@@ -82,6 +89,15 @@ export default function GeneralRoom() {
   const [refreshing, setRefreshing] = useState(false);
   const [checkScroll, setcheckScroll] = useState(true);
   const [hostId, setHostId] = useState<string>("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [positionMenu, setPositionMenu] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [visibleQR, setVisibleQR] = useState(false);
+  const [joinCode, setJoinCode] = useState(JSON.parse(String(group)).id);
+  const [myGroup, setMyGroup] = useState<any>(JSON.parse(String(group)));
+  const [showMember, setShowMember] = useState(false);
   const handleLoadMore = async () => {
     setPage(page + 1);
   };
@@ -89,6 +105,26 @@ export default function GeneralRoom() {
     setRefreshing(true);
     handleLoadMore().then(() => setRefreshing(false));
   };
+  useEffect(() => {
+    setPage(0);
+  }, [isFocused]);
+  useEffect(() => {
+    loadMessage();
+  }, []);
+  useEffect(() => {
+    // Lắng nghe sự kiện bàn phím
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        // Thực hiện hành động khi bàn phím xuất hiện
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }
+    );
+    // Xóa bỏ lắng nghe khi component bị unmount
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, []);
   //Connect to socket
   useEffect(() => {
     if (socketContext) {
@@ -96,9 +132,9 @@ export default function GeneralRoom() {
       const { socket } = socketContext;
       if (socket) {
         socket.emit("joinSubject", { userID: user?.id, subjectID: subjectId });
-        socket.on("receiveSubjectMessage", (message: Question) => {
-          if (message.studentId.id != user?.id)
-            setQuestionList((prevList) => [...prevList, message]);
+        socket.on("receiveSubjectMessage", (message: Message) => {
+          if (message.senderId.id != user?.id)
+            setMessageList((prevList) => [...prevList, message]);
           scrollViewRef.current?.scrollToEnd({ animated: true });
         });
       }
@@ -117,29 +153,7 @@ export default function GeneralRoom() {
     };
   }, [socketContext]);
 
-  useEffect(() => {
-    setPage(0);
-  }, [isFocused]);
-  useEffect(() => {
-    loadQuestion();
-  }, []);
-  useEffect(() => {
-    // Lắng nghe sự kiện bàn phím
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        // Thực hiện hành động khi bàn phím xuất hiện
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }
-    );
-
-    // Xóa bỏ lắng nghe khi component bị unmount
-    return () => {
-      keyboardDidShowListener.remove();
-    };
-  }, []);
-
-  const formatTimeQuestion = (time: Date) => {
+  const formatTimeMessage = (time: Date) => {
     const hours = Math.floor(time.getHours());
     const minutes = Math.floor(time.getMinutes());
     const formattedMinutes = String(minutes).padStart(2, "0");
@@ -169,17 +183,17 @@ export default function GeneralRoom() {
     // Kiểm tra nếu hiệu của hai thời điểm lớn hơn 10 phút
     return diffMinutes > 5;
   };
-  const recallQuestion = async (Id: string) => {
-    setQuestionList((prevList) =>
+  const recallMessage = async (Id: string) => {
+    setMessageList((prevList) =>
       prevList.map((item) =>
-        item._id === Id ? { ...item, isResolved: true } : item
+        item._id === Id ? { ...item,isRevoked: true } : item
       )
     );
   };
 
-  const renderQuestion = () => {
+  const renderMessage = () => {
     const list: JSX.Element[] = [];
-    const totalMessages = questionList.length;
+    const totalMessages = messageList.length;
     let numberName = 0;
 
     if (totalMessages === 0) {
@@ -195,12 +209,12 @@ export default function GeneralRoom() {
 
     for (let i = start; i < totalMessages; i++) {
       let sender = "";
-      const currentQuestion = questionList[i];
+      const currentQuestion = messageList[i];
       const time = new Date(currentQuestion.createdAt);
 
       // Hiển thị ngày nếu cần
       if (i > 0) {
-        const previousQuestionTime = new Date(questionList[i - 1].createdAt);
+        const previousQuestionTime = new Date(messageList[i - 1].createdAt);
         if (previousQuestionTime.getDate() !== time.getDate()) {
           list.push(
             <Text
@@ -212,84 +226,51 @@ export default function GeneralRoom() {
           );
         }
       }
-      sender = currentQuestion.studentId.id === user?.id ? "My message" : "";
+      sender = currentQuestion.senderId.id === user?.id ? "My message" : "";
       // Xử lý ẩn danh
       if (!sender) {
         if (
           i === 0 ||
           (i > 0 &&
-            (currentQuestion.studentId.id !==
-              questionList[i - 1].studentId.id ||
+            (currentQuestion.senderId.id !== messageList[i - 1].senderId.id ||
               time.getDate() !==
-                new Date(questionList[i - 1].createdAt).getDate()))
+                new Date(messageList[i - 1].createdAt).getDate()))
         ) {
-          if (currentQuestion.studentId.id == hostId) {
-            list.push(
-              <Text
-                key={`${hostId}${i}`}
-                className="mr-auto ml-9 text-blue_primary -mb-[2px] mt-1"
-              >
-                Giảng viên
-              </Text>
-            );
-          } else {
-            const formatName = listFormat.find(
-              (item) => item.id == currentQuestion.studentId.id
-            );
-            if (formatName) {
-              list.push(
-                <Text
-                  key={`${formatName.number}${i}`}
-                  className="mr-auto ml-9 -mb-[2px] mt-1"
-                >
-                  Ẩn danh {formatName.number}
-                </Text>
-              );
-            } else {
-              numberName = numberName + 1;
-              console.log(numberName);
-              console.log(currentQuestion.content);
-              listFormat.push({
-                id: currentQuestion.studentId.id,
-                number: numberName,
-              });
-              list.push(
-                <Text
-                  key={`${numberName}${i}`}
-                  className="mr-auto ml-9 -mb-[2px] mt-1"
-                >
-                  Ẩn danh {numberName}
-                </Text>
-              );
-            }
-          }
+          list.push(
+            <Text
+              key={i}
+              className="mr-auto ml-10 -mb-[2px] mt-1 text-gray-500 text-[12px]"
+            >
+              {currentQuestion.senderId.name} -{" "}
+              {currentQuestion.senderId.userCode}
+            </Text>
+          );
         }
       }
       // Xử lý hiển thị câu hỏi
       const isSameSender =
         i + 1 < totalMessages &&
-        currentQuestion.studentId.id === questionList[i + 1].studentId.id &&
-        time.getDate() == new Date(questionList[i + 1].createdAt).getDate();
+        currentQuestion.senderId.id === messageList[i + 1].senderId.id &&
+        time.getDate() == new Date(messageList[i + 1].createdAt).getDate();
       let shouldDisplayTime =
         i < totalMessages - 1 &&
-        checkTimeDifference(time, new Date(questionList[i + 1].createdAt));
+        checkTimeDifference(time, new Date(messageList[i + 1].createdAt));
       //Tin nhắn cuối cùng luôn hiển thị thời gian
       if (i == totalMessages - 1) {
         shouldDisplayTime = true;
       }
 
       list.push(
-        <Question
+        <MessageGroup
           key={currentQuestion._id}
           Id={currentQuestion._id}
-          SenderId={currentQuestion.studentId.id}
-          IsRecall={currentQuestion.isResolved}
+          IsRecall={currentQuestion.isRevoked}
           User={sender}
           Content={currentQuestion.content}
-          Time={shouldDisplayTime ? formatTimeQuestion(time) : ""}
-          Avatar={isSameSender ? "no" : sender && user ? user?.avatar : ""}
+          Time={shouldDisplayTime ? formatTimeMessage(time) : ""}
+          Avatar={isSameSender ? "no" : currentQuestion.senderId.avatar}
           Type={currentQuestion.type}
-          HandleRecall={recallQuestion}
+          HandleRecall={recallMessage}
         />
       );
     }
@@ -297,40 +278,51 @@ export default function GeneralRoom() {
     return list;
   };
 
-  const loadQuestion = async () => {
+  const loadMessage = async () => {
     setLoading(true);
-    const url = `${localHost}/api/v1/question/findBySubject/${subjectId}?page=1&limit=1000`;
+    const url = `${localHost}/api/v1/group/${myGroup.id}/message?page=1&limit=1000`;
     const response = await get({ url: url, token: accessToken });
     if (response) {
       if (response.status == 200) {
-        const list = await response.data;
-        setQuestionList(list.questions);
-      } else {
-        Alert.alert("Thông báo", "Đã xảy ra lỗi");
+        const list = await response.data.groupMessages.reverse();
+        setMessageList(
+          list.map((item: any) => ({
+            _id: item._id,
+            content:
+              item.images.length > 0 && item.images[0] != ""
+                ? item.images[0]
+                : item.content,
+            senderId: item.senderId,
+            createdAt: item.createdAt,
+            type:
+              item.images.length > 0 && item.images[0] != "" ? "image" : "text",
+            isRevoked: item.isRevoked,
+          }))
+        );
       }
     }
     setLoading(false);
   };
 
-  const sendQuestion = async (Type: string, Content: string) => {
+  const sendMessage = async (Type: string, Content: string) => {
     if (!Content || Content == "") {
       Content = message;
       setMessage("");
     }
 
     const dataPost = {
-      subjectId: `${subjectId}`,
-      studentId: `${user?.id}`,
-      content: Content,
-      type: Type,
-      isResolved: false,
+      groupId: `${myGroup.id}`,
+      senderId: `${user?.id}`,
+      content: Type == "text" ? Content : "",
+      images: Type == "image" ? Content : "",
     };
+    console.log("dataPost: ", dataPost);
     if (user) {
-      const msg: Question = {
+      const msg: Message = {
         _id: "",
         subjectId: `${subjectId}`,
         content: Content,
-        studentId: {
+        senderId: {
           name: user.name,
           userCode: user.userCode,
           role: user.role,
@@ -339,12 +331,12 @@ export default function GeneralRoom() {
         },
         createdAt: `${new Date().toISOString()}`,
         type: Type,
-        isResolved: false,
+       isRevoked: false,
         updatedAt: `${new Date().toISOString()}`,
         __v: "0",
         id: "",
       };
-      const url = `${localHost}/api/v1/question/add`;
+      const url = `${localHost}/api/v1/group/message/create`;
 
       const response = await post({
         url: url,
@@ -354,9 +346,9 @@ export default function GeneralRoom() {
 
       if (response) {
         if (response.status == 201) {
-          msg.id = response.data.question.id;
-          msg._id = response.data.question._id;
-          setQuestionList((prevList) => [...prevList, msg]);
+          msg.id = response.data.groupMessage.id;
+          msg._id = response.data.groupMessage._id;
+          setMessageList((prevList) => [...prevList, msg]);
           if (socketContext?.socket) {
             const dataMsg = {
               title: `${name}`, //Tên môn học
@@ -445,7 +437,7 @@ export default function GeneralRoom() {
       }
       const Image = image.join(" ");
       // setMessage(Image);
-      if (image.length > 0) await sendQuestion("image", Image);
+      if (image.length > 0) await sendMessage("image", Image);
       // setMessage('');
       setUploading(false);
     }
@@ -467,42 +459,80 @@ export default function GeneralRoom() {
         "" + timestamp + user?.id
       );
       if (imageUrl) {
-        sendQuestion("image", imageUrl);
+        sendMessage("image", imageUrl);
         setMessage("");
       }
       setUploading(false);
     }
   };
-
   //send
   const handlesendQuestion = async () => {
     setcheckScroll(true);
-    await sendQuestion("text", "");
+    await sendMessage("text", "");
   };
-  const getHost = async () => {
-    const url = `${localHost}/api/v1/subject/${subjectId}`;
-    const res = await get({ url: url, token: accessToken });
-    if (res && res.status == 200) {
-      setHostId(res.data.subject.hostId);
-    }
+  const leaveGroup = async () => {
+    setShowMenu(false);
+    const url = `${localHost}/api/v1/group/leave/${myGroup.id}`;
+    Alert.alert(
+      "Xác nhận",
+      "Bạn có chắc chắn muốn rời nhóm không?",
+      [
+        {
+          text: "Hủy",
+          style: "cancel"
+        },
+        {
+          text: "Đồng ý",
+          onPress: async () => {
+            setLoading(true);
+              const response = await deleteApi({ url: url, token: accessToken});
+              console.log("response: ", response);
+              if (response) {
+                if (response.status == 200) {
+                router.back();
+                } else {
+                  Alert.alert("Thông báo", "Đã có lỗi xảy ra !");
+                }
+              }
+              setLoading(false);
+          }
+        }
+      ]
+    );
+    setLoading(false);
+    return;
+  
   };
-  useEffect(() => {
-    getHost();
-  }, []);
-
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
-      <View className="justify-center h-full flex-1 w-full">
-        <View className=" shadow-md  pb-[1.5%] bg-blue_primary flex-row  pt-[12%] px-[4%] items-center ">
+      <View className="justify-center h-full flex-1 w-full ">
+        <View className=" shadow-md  pb-[1.5%] bg-blue_primary flex-row  pt-[12%] px-[4%] items-center">
           <TouchableOpacity onPress={router.back}>
             <Ionicons name="chevron-back-sharp" size={24} color="white" />
           </TouchableOpacity>
-          <View className="mx-auto items-center pr-6">
+          <View className="mx-auto items-center">
             <Text className="text-[18px] font-msemibold uppercase text-white">
               {code}
             </Text>
-            <Text className="mt-[-3px] text-white font-mmedium">Thảo luận</Text>
+            <Text className="mt-[-3px] text-white font-mmedium">
+              Nhóm - {myGroup.name}
+            </Text>
           </View>
+          <TouchableOpacity
+          className=""
+            onLayout={(event) => {
+              const { x, y } = event.nativeEvent.layout;
+              setPositionMenu({
+                x,
+                y,
+              });
+            }}
+            onPress={() => {
+              setShowMenu(true);
+            }}
+          >
+            <AntDesign name="exclamationcircleo" size={22} color="white" />
+          </TouchableOpacity>
         </View>
         <LinearGradient
           className="h-[1.2px] bg-[#F7F7F7]"
@@ -549,7 +579,7 @@ export default function GeneralRoom() {
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           >
-            {renderQuestion()}
+            {renderMessage()}
           </ScrollView>
         )}
         <LinearGradient className="h-[1px]" colors={["#fafafa", "#d6d4d4"]} />
@@ -595,11 +625,114 @@ export default function GeneralRoom() {
             </>
           )}
         </View>
-
         <Loading loading={isUploading} />
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showMenu}
+          onRequestClose={() => setShowMenu(false)}
+        >
+          <TouchableOpacity
+            className="flex-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+            onPress={() => setShowMenu(false)}
+          >
+            <View
+              className=" bg-white pl-3 rounded-md w-fit h-fit mx-auto pr-8 gap-y-1 pb-3 pt-1 absolute "
+              style={{
+                top: positionMenu.y,
+                left: positionMenu.x - 135,
+              }}
+            >
+              <TouchableOpacity onPress={() => {
+                setVisibleQR(true);
+                setShowMenu(false);
+              }}>
+                <Text className="font-mmedium text-base">Mã tham gia</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={leaveGroup}>
+                <Text className="font-mmedium text-base">Rời nhóm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowMember(true);
+                  setShowMenu(false);
+                }}
+              >
+                <Text className="font-mmedium text-base">Thành viên</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+        {/* modal qr code */}
+        <Modal
+          visible={visibleQR}
+          transparent={true}
+          onRequestClose={() => setVisibleQR(false)}
+        >
+          <View
+            className="relative p-0 m-0 w-full h-full"
+            style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+          >
+            <View className="flex-row absolute top-2 right-3 z-50">
+              <TouchableOpacity
+                className="ml-auto bg-gray-300/60 rounded-full w-[32px] h-[32px] items-center justify-center"
+                onPress={() => setVisibleQR(false)}
+              >
+                <AntDesign name="close" size={23} color="red" />
+              </TouchableOpacity>
+            </View>
+            <View className="w-full h-[85%] my-auto">
+              <Image
+                className="w-[90%] h-[90%] mx-auto"
+                source={{
+                  uri: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${joinCode}`,
+                }}
+                style={{ resizeMode: "contain" }}
+              />
+              <Text className="mx-auto text-white text-2xl">{joinCode}</Text>
+            </View>
+          </View>
+        </Modal>
+        {/* modal thanh vien */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showMember}
+          onRequestClose={() => setShowMember(false)}
+        >
+          <View
+            className="flex-1 justify-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          >
+            <TouchableOpacity
+              className="ml-auto mr-3 -mb-1"
+              onPress={() => setShowMember(false)}
+            >
+              <Ionicons name="close" size={26} color="red" />
+            </TouchableOpacity>
+
+            <View className="mt-2 bg-white p-2 rounded-xl w-[90%] mx-auto px-4 pb-3">
+              <Text className="text-base font-semibold text-center">
+                {myGroup.name}
+              </Text>
+              <View className="flex-row items-center">
+                <Text className="text-base ml-1">Thành viên</Text>
+              </View>
+              <ScrollView className="max-h-[240px] pb-1">
+                {myGroup.members.map((member: any) => (
+                  <View key={member.id} className="bg-gray-200 rounded-xl py-2 px-4 mt-2">
+                    <Text className="text-base">
+                      {member.userCode} - {member.name}
+                    </Text>
+                  </View>
+                ))}
+                
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </View>
     </KeyboardAvoidingView>
   );
 }
-
-// registerRootComponent(ScreenChatRoom);

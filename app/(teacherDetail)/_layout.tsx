@@ -27,6 +27,9 @@ export default function TeacherDetailLayout({}: Props) {
       <Stack.Screen name='classDetail/notification/cancellation' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/notification/reschedule' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/teachFeature/studentList' options={{headerShown:false}}/>
+      <Stack.Screen name='classDetail/groupManager/index' options={{headerShown:false}}/>
+      <Stack.Screen name='classDetail/teachFeature/groupRandom' options={{headerShown:false}}/>
+      <Stack.Screen name='classDetail/teachFeature/groupChat' options={{headerShown:false}}/>
     </Stack>
   )
 }

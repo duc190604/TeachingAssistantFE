@@ -112,6 +112,33 @@ export default function TeachFeature({}: Props) {
          }
       });
    };
+   const groupRandom = async () => {
+    const res = await get({
+      url: localHost + `/api/v1/cAttend/${attendId}`,
+      token: accessToken,
+    });
+    if(res)
+    {
+      if(res.status == 200)
+      {
+        if(res.data.cAttend.isActive)
+        {
+          router.push({
+            pathname: "/(teacherDetail)/classDetail/teachFeature/groupRandom",
+            params: {
+               subjectId: subjectId,
+               name: name, 
+               code: code,
+               attendId: attendId,
+               date: date
+            }
+         });
+        } else {
+          Alert.alert("Thông báo", "Xin vui lòng điểm danh trước khi chia nhóm");
+        }
+      }
+    }
+   };
    const studentList = async () => {
       router.push({
          pathname: "/classDetail/teachFeature/studentList",
@@ -216,6 +243,15 @@ export default function TeachFeature({}: Props) {
            </Text>
            <Text className="ml-auto text-red text-base font-medium">
              ({questionResolved})
+           </Text>
+         </TouchableOpacity>
+         <TouchableOpacity
+           onPress={groupRandom}
+           className="flex-row items-center bg-white w-[94%] mx-auto px-[6%] py-4 rounded-2xl mt-3"
+         >
+           <Ionicons name="people-outline" size={24} color="black" />
+           <Text className="text-base font-msemibold ml-4 mr-auto">
+             Chia nhóm
            </Text>
          </TouchableOpacity>
          <TouchableOpacity
