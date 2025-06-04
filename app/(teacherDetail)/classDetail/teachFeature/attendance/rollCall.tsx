@@ -194,7 +194,7 @@ export default function RollCall({}: Props) {
              data: {
                subjectId: subjectId,
                cAttendId: attendId,
-               date: date,
+               date: formatNoWeekday(date),
              },
              token: accessToken,
            });
