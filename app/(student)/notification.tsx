@@ -1,10 +1,11 @@
 import { getAPI } from "@/utils/api";
 import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "@/context/AuthContext";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { localHost } from "@/utils/localhost";  
 import get from "@/utils/get";
+import { formatNoWeekday } from "@/utils/formatDate";
 export type Notification={
     id:string,
     title:string,
@@ -15,10 +16,10 @@ export type Notification={
 export type NotificationData={
   id: string,
   notificationId: {
-    senderId: string,
+    senderId?: string,
     title: string,
     content: string,
-    type: string,
+    type?: string,
     referenceModel: string,
     referenceId: string,
     createdAt: string,
@@ -99,7 +100,11 @@ export default function Notification() {
             if(response.status==200)
             {
                 const data = response.data;
-                setNotification(data.notifications);
+                const result = data.notifications.filter((item: NotificationData) => {
+                    return item.notificationId != null;
+                })
+                
+                setNotification(result);
             }
             else{
                 Alert.alert("Thông báo","Đã xảy ra lỗi, vui lòng thử lại sau !")
@@ -108,9 +113,11 @@ export default function Notification() {
         else
           setNotification(exampleData);
     }
-    useEffect(()=>{
-        getNotification()
-    },[])
+    useFocusEffect(
+      useCallback(() => {
+        getNotification();
+      }, [])
+    );
   return (
     <View>
       <View className="bg-blue_primary pb-[3.5%]  border-b-[1px] border-gray-200 ">
@@ -118,7 +125,7 @@ export default function Notification() {
           Thông báo
         </Text>
       </View>
-      <ScrollView>
+      <ScrollView className="mb-24">
         {notification.length > 0 ? (
           notification.map((item) => (
             <TouchableOpacity 
@@ -147,7 +154,7 @@ export default function Notification() {
               {item.notificationId.content}
             </Text>
             <Text className="text-[12px] text-gray-400 font-light">
-              {item.notificationId.createdAt}
+              {formatNoWeekday(item.notificationId.createdAt)}
             </Text>
           </TouchableOpacity>
         ))

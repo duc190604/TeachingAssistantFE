@@ -59,6 +59,7 @@ export default function listRoom({ }: Props) {
       }
       const getRandomGroup= async()=>{
         setLoading(true)
+        console.log(accessToken)
             const res = await get({
               url: `${localHost}/api/v1/group/random/${subjectId}`,
               token: accessToken,
@@ -70,9 +71,9 @@ export default function listRoom({ }: Props) {
               return
             }
             if(res)
-            {
-              if(res.status==200)
               {
+                if(res.status==200 || res.status==304)
+                  {
                 const data= res.data.groups;
                 const listGroup= data.map((item:any)=>({
                   id:item._id,

@@ -1,5 +1,4 @@
 import React from 'react'
-import{View,Text,SafeAreaView} from 'react-native'
 import { Stack } from 'expo-router'
 
 type Props = {}
@@ -23,6 +22,8 @@ export default function TeacherDetailLayout({}: Props) {
       <Stack.Screen name='classDetail/statistical/index' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/statistical/rollCall' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/statistical/review' options={{headerShown:false}}/>
+      <Stack.Screen name='classDetail/statistical/interaction' options={{headerShown:false}}/>
+      <Stack.Screen name='classDetail/statistical/absence' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/notification/index' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/notification/cancellation' options={{headerShown:false}}/>
       <Stack.Screen name='classDetail/notification/reschedule' options={{headerShown:false}}/>

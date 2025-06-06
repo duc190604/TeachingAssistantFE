@@ -1,10 +1,11 @@
 import { getAPI } from "@/utils/api";
 import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/context/AuthContext";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { localHost } from "@/utils/localhost";  
 import get from "@/utils/get";
+import { formatNoWeekday } from "@/utils/formatDate";
 export type Notification={
     id:string,
     title:string,
@@ -99,6 +100,9 @@ export default function Notification() {
             if(response.status==200)
             {
                 const data = response.data;
+                const result = data.notifications.filter((item: NotificationData) => {
+                    return item.notificationId != null;
+                })
                 setNotification(data.notifications);
             }
             else{
@@ -108,9 +112,11 @@ export default function Notification() {
         else
           setNotification(exampleData);
     }
-    useEffect(()=>{
-        getNotification()
-    },[])
+    useFocusEffect(
+      useCallback(() => {
+        getNotification();
+      }, [])
+    )
   return (
     <View>
       <View className="bg-blue_primary pb-[3.5%]  border-b-[1px] border-gray-200 ">
@@ -147,7 +153,7 @@ export default function Notification() {
               {item.notificationId.content}
             </Text>
             <Text className="text-[12px] text-gray-400 font-light">
-              {item.notificationId.createdAt}
+              {formatNoWeekday(item.notificationId.createdAt)}
             </Text>
           </TouchableOpacity>
         ))

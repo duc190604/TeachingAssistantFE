@@ -118,6 +118,17 @@ export default function Absence() {
           setProof([]);
           setReason("");
           setDateAbsence(new Date());
+          setAbsenceRequests((prev) => [
+            {
+              id: res.data.absenceRequest.id,
+              subjectId: subjectId as string,
+              proof: proof,
+              status: "pending",
+              reason: reason,
+              date: dateAbsence,
+            },
+            ...prev,
+          ]);
         }
       }
      }
@@ -145,6 +156,9 @@ export default function Absence() {
       if(res){
         if(res.status===200){
           Alert.alert("Thông báo", "Đơn xin nghỉ đã được xóa");
+          setAbsenceRequests((prev) =>
+            prev.filter((item) => item.id !== selectedAbsenceRequest.id)
+          );
           setOpenModalDetail(false);
         }
       }
