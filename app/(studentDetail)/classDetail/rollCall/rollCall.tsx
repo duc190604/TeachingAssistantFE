@@ -222,7 +222,7 @@ export default function RollCall({}: Props) {
         index: index,
       };
       const res = await post({ url: url, token: accessToken, data: data });
-      if (res && res.status == 201) {
+      if (res && (res.status == 201 || res.status == 200)) {
         const record = res.data.attendRecord;
         if (record.listStatus.find((item: any) => item.index == index && item.status == "CM")) {
           // setAttends(
@@ -246,9 +246,8 @@ export default function RollCall({}: Props) {
         }
         
       }
-      if (res?.status != 201) {
+      else
         Alert.alert("Thông báo", `${res?.data?.message}`);
-      }
     }
     setLoading(false);
   };
