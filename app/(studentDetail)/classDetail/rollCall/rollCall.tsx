@@ -235,6 +235,8 @@ export default function RollCall({}: Props) {
             socketContext.socket.emit("sendAttendance", {
               subjectID: subjectId,
               student: user?.id,
+              index: index,
+              status: record.status
             });
           }
           Alert.alert("Thông báo", "Điểm danh thành công");

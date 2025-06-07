@@ -362,8 +362,9 @@ export default function RollCall({}: Props) {
         socket.on("receiveUserAttendance", (dataMsg: any) => {
           setListStudent((listStudent) => {
             return listStudent.map((item) => {
-              if (item.id == dataMsg) {
-                item.check = true;
+              if (item.id == dataMsg.student) {
+                item.status = dataMsg.status;
+                item.listStatus[dataMsg.index] = "CM";
               }
               return item;
             });
