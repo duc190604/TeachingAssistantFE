@@ -58,6 +58,8 @@ export type Discussion = {
    reactions: Reaction[];
    comments: Comment[];
    replyOf: string;
+   upvotes:string[];
+   downvotes:string[];
 };
 export type Reaction = {
    type: number;
@@ -88,6 +90,8 @@ type Comment = {
       email: string;
       school: string;
    };
+   upvotes:string[];
+   downvotes:string[];
 };
 
 export default function Discussion() {
@@ -194,7 +198,9 @@ export default function Discussion() {
                isResolved:currentPost.isResolved,
                reactions:currentPost.reactions,
                myId:user?.id || null,
-               replyOf:currentPost.replyOf
+               replyOf:currentPost.replyOf,
+               upvotes:currentPost.upvotes || [],
+               downvotes:currentPost.downvotes || []
          })
          
       }
@@ -209,7 +215,8 @@ export default function Discussion() {
                 createdAt: formatTimePost(post.Time),
                 nameAnonymous: post.nameAnonymous,
                 creator: post.Creator,
-                
+                upvotes: post.upvotes || [],
+                downvotes: post.downvotes || []
               }));
             return {
               ...item,
@@ -237,6 +244,8 @@ export default function Discussion() {
             myId={user?.id || null}
             handleKickStudent={kickStudent}
             comments={item.comments}
+            upvotes={item.upvotes||[]}
+            downvotes={item.downvotes||[]}
             />
          );
       });

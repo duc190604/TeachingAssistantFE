@@ -16,6 +16,7 @@ import Feather from "@expo/vector-icons/Feather";
 import SocketContext from "@/context/SocketContext";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { formatDate } from "@/utils/formatDate";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 type Props = {
   id: string;
@@ -32,6 +33,8 @@ type Props = {
     school: string;
   };
   cAttendId: string;
+  upvotes:string[];
+  downvotes:string[];
   handleDeletePost: (Id: string) => void;
   handleKickStudent: (id: string) => void;
 };
@@ -42,6 +45,8 @@ export default function CommentQuestionTeacher({
   nameAnonymous,
   creator,
   cAttendId,
+  upvotes,
+  downvotes,
   handleDeletePost,
   handleKickStudent,
 }: Props) {
@@ -53,6 +58,8 @@ export default function CommentQuestionTeacher({
   const { user, accessToken } = authContext;
   const [reactionModalVisible, setReactionModalVisible] = useState(false);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [listUpvote, setListUpvote] = useState<string[]>(upvotes);
+  const [listDownvote, setListDownvote] = useState<string[]>(downvotes);
   const deletePost = async () => {
     const res = await deleteApi({
       url: `${localHost}/api/v1/discussion/delete/${id}`,
@@ -82,7 +89,7 @@ export default function CommentQuestionTeacher({
         onLongPress={() => {
           setReactionModalVisible(true);
         }}
-        className="mt-3 w-[90%] ml-[5%] bg-gray-100 rounded-lg p-2"
+        className="mt-3 w-[90%] ml-[5%] bg-gray-100 rounded-lg p-2 relative"
       >
         <View className="flex-row items-center">
           <Image
@@ -90,9 +97,21 @@ export default function CommentQuestionTeacher({
             className="w-6 h-6 rounded-full"
           />
           <Text className=" text-sm ml-2 font-medium">{nameAnonymous}</Text>
-          <Text className=" text-[12px] ml-2 font-regular text-gray_primary">{createdAt}</Text>
+          <Text className=" text-[12px] ml-2 font-regular text-gray_primary">
+            {createdAt}
+          </Text>
         </View>
-        <Text className="text-[15px] ml-2 mt-1">{content}</Text>
+        <Text className="text-[15px] ml-2 mt-1 leading-[21px]">{content}</Text>
+        <View className="flex-row items-center ml-auto absolute -right-0 -bottom-[10px]">
+          <AntDesign name="like1" size={18} color="green" />
+          <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-500">
+            {listUpvote.length}
+          </Text>
+          <AntDesign name="dislike1" size={18} color="red" />
+          <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-500">
+            {listDownvote.length}
+          </Text>
+        </View>
       </Pressable>
       {/* modal phản hồi */}
       <Modal

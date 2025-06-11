@@ -47,6 +47,8 @@ type Props = {
     email: string;
     school: string;
   };
+  upvotes:string[];
+  downvotes:string[];
   handleDeletePost: (Id: string) => void;
   handleKickStudent: (studentId: string) => void;
   handleReceiveReaction?: (reaction: Reaction) => void;
@@ -70,6 +72,8 @@ type Comment = {
     email: string;
     school: string;
   };
+  upvotes:string[];
+  downvotes:string[];
 };
 
 export default function postDiscussionTeacher({
@@ -88,6 +92,8 @@ export default function postDiscussionTeacher({
   handleDeletePost,
   handleKickStudent,
   comments,
+  upvotes,
+  downvotes,
 }: Props) {
   const authContext = useContext(AuthContext);
   if (!authContext) {
@@ -102,6 +108,8 @@ export default function postDiscussionTeacher({
   const [reaction, setReaction] = useState<ReactionShow[]>([]);
   const [reply, setReply] = useState(isResolved);
   const [showAllComments, setShowAllComments] = useState(false);
+  const [listUpvote, setListUpvote] = useState<string[]>(upvotes);
+  const [listDownvote, setListDownvote] = useState<string[]>(downvotes);
   const resetReaction = () => {
     const reactionCount = reactions.reduce((acc: any, item: Reaction) => {
       acc[item.type] = (acc[item.type] || 0) + 1;
@@ -389,24 +397,37 @@ export default function postDiscussionTeacher({
               </TouchableOpacity>
             ))}
           </View>
-          <View className="flex-row gap-[1px] -mb-2 ml-1 mt-[4px] ">
-            {reaction.map((item, index) => (
-              <View key={index} className="flex-row items-center">
-                <Image
-                  source={
-                    item.type === 1
-                      ? icons.react1
-                      : item.type === 2
-                      ? icons.react2
-                      : icons.react3
-                  }
-                  className="w-[25px] h-[25px]"
-                />
-                <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
-                  {item.count}
-                </Text>
-              </View>
-            ))}
+          <View className="flex-row gap-[1px] -mb-2 ml-1 mt-[4px] justify-between ">
+            <View className="flex-row">
+              {reaction.map((item, index) => (
+                <View key={index} className="flex-row items-center">
+                  <Image
+                    source={
+                      item.type === 1
+                        ? icons.react1
+                        : item.type === 2
+                        ? icons.react2
+                        : icons.react3
+                    }
+                    className="w-[25px] h-[25px]"
+                  />
+                  <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
+                    {item.count}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            {/* vote */}
+            <View className="flex-row items-center">
+              <AntDesign name="like1" size={24} color="green" />
+              <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
+                {listUpvote.length}
+              </Text>
+              <AntDesign name="dislike1" size={24} color="red" />
+              <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
+                {listDownvote.length}
+              </Text>
+            </View>
           </View>
         </Pressable>
         {isResolved && (
@@ -424,6 +445,8 @@ export default function postDiscussionTeacher({
                   cAttendId={CAttendId as string}
                   handleDeletePost={handleDeletePost}
                   handleKickStudent={handleKickStudent}
+                  upvotes={item.upvotes}
+                  downvotes={item.downvotes}
                 />
               )
             )}

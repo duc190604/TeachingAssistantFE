@@ -51,6 +51,8 @@ export type Discussion = {
       avatar: string;
       id: string;
    };
+   upvotes:string[];
+   downvotes:string[];
    isResolved: boolean;
    reactions: Reaction[];
    replyOf?: string;
@@ -171,7 +173,6 @@ export default function DiscussionRoom() {
                );
             }
          }
-         console.log("message: ", time)
          tempPostList.push({
             handleDeletePost: handleDeletePost,
             key: currentPost.id,
@@ -187,10 +188,11 @@ export default function DiscussionRoom() {
             reactions: currentPost.reactions || [],
             myId: user?.id || null,
             replyOf: currentPost.replyOf || null,
+            upvotes: currentPost.upvotes || [],
+            downvotes: currentPost.downvotes || []
          });
          
       }
-      console.log("message1: ", tempPostList[0].Time)
      tempPostList.sort((a:any, b:any) => new Date(b.Time).getTime() - new Date(a.Time).getTime())
       const listFilter = tempPostList.map((item)=>{
          if(!item.replyOf){
@@ -199,7 +201,9 @@ export default function DiscussionRoom() {
             content: post.Content,
             createdAt: formatTimePost(post.Time),
             nameAnonymous: post.nameAnonymous,
-            creator: post.Creator
+            creator: post.Creator,
+            upvotes: post.upvotes || [],
+            downvotes: post.downvotes || []
          }));
          return {
             ...item,
@@ -208,7 +212,6 @@ export default function DiscussionRoom() {
          }
          }
       }).filter(item=>item)
-      console.log("message2: ", listFilter[0].Time)
       listFilter.forEach(item => {
          list.push(
             <DiscussionPost
@@ -227,6 +230,8 @@ export default function DiscussionRoom() {
                myId={user?.id || null}
                comments={item.comments}
                addComment={addComment}
+               upvotes={item.upvotes||[]}
+               downvotes={item.downvotes||[]}
             />
          );
       })
@@ -273,7 +278,9 @@ export default function DiscussionRoom() {
          content: `${contentPost}`,
          images: urlDownload,
          isResolved: false,
-         reactions: []
+         reactions: [],
+         upvotes: [],
+         downvotes: []
       };
 
       if (user) {

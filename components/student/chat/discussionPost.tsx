@@ -42,6 +42,8 @@ export type Comment = {
     avatar: string;
     id: string;
   };
+  upvotes:string[];
+  downvotes:string[];
 };
 type Props = {
   Title: string;
@@ -62,6 +64,8 @@ type Props = {
     id: string;
   };
   comments: Comment[];
+  upvotes:string[];
+  downvotes:string[];
   handleDeletePost: (Id: string) => void;
   addComment: (item: Discussion) => void;
 };
@@ -85,6 +89,8 @@ export default function DiscussionPost({
   comments,
   handleDeletePost,
   addComment,
+  upvotes,
+  downvotes,
 }: Props) {
   const authContext = useContext(AuthContext);
   const socketContext = useContext(SocketContext);
@@ -98,7 +104,12 @@ export default function DiscussionPost({
   const [myReaction, setMyReaction] = useState<Reaction | null>(
     reactions.find((item) => item.userId.id == myId) || null
   );
+  const [myVote, setMyVote] = useState<"upvote" | "downvote" | null>(
+    Creator.id == myId ? null : upvotes.includes(myId || "") ? "upvote" : downvotes.includes(myId || "") ? "downvote" : null
+  );
   const [reaction, setReaction] = useState<ReactionShow[]>([]);
+  const [listUpvote, setListUpvote] = useState<string[]>(upvotes);
+  const [listDownvote, setListDownvote] = useState<string[]>(downvotes);
   const resetReaction = () => {
     const reactionCount = reactions.reduce((acc: any, item: Reaction) => {
       acc[item.type] = (acc[item.type] || 0) + 1;
@@ -261,6 +272,53 @@ export default function DiscussionPost({
     setCommentContent("");
     setCommentModalVisible(false);
   };
+  const handleVote = async (type: "upvote" | "downvote") => {
+    if(Creator.id !== myId && !isResolved)
+    {
+      const res = await post({
+        url: `${localHost}/api/v1/discussion/${Id}/vote`,
+        data: { type: type },
+        token: accessToken,
+      });
+      if (res) {
+        if (res.status == 200) {
+          if(!myVote)
+          {
+            setMyVote(type);
+            if (type == "upvote") {
+              setListUpvote([...listUpvote, myId || ""]);
+            } else {
+              setListDownvote([...listDownvote, myId || ""]);
+            }
+          } else {
+              if(myVote == type)
+              {
+                setMyVote(null);
+                if (type == "upvote") {
+                  setListUpvote(listUpvote.filter((item) => item != myId));
+                } else {
+                  setListDownvote(listDownvote.filter((item) => item != myId));
+                }
+              } else {
+                setMyVote(type);
+                if(type == "upvote")
+                {
+                  setListDownvote(listDownvote.filter((item) => item != myId));
+                  setListUpvote([...listUpvote, myId || ""]);
+                } else {
+                  setListUpvote(listUpvote.filter((item) => item != myId));
+                  setListDownvote([...listDownvote, myId || ""]);
+                }
+              }
+          }
+        } else {
+          Alert.alert("Thông báo", "Không thể vote");
+        }
+      }
+      setReactionModalVisible(false);
+    }
+   
+  };
   return (
     <View className="w-full ">
       <Modal
@@ -312,6 +370,29 @@ export default function DiscussionPost({
               </TouchableOpacity>
             </View>
           )}
+          {/* vote */}
+          {!isResolved && myId != Creator.id && (
+            <View className="bg-white py-3 px-4 rounded-xl">
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={() => handleVote("upvote")}
+                  className={`p-1 ${
+                    myVote == "upvote" ? "bg-gray-300/50 rounded-lg" : ""
+                  }`}
+                >
+                  <AntDesign name="like1" size={24} color="green" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleVote("downvote")}
+                  className={`p-1 ${
+                    myVote == "downvote" ? "bg-gray-300 rounded-md" : ""
+                  }`}
+                >
+                  <AntDesign name="dislike1" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </TouchableOpacity>
       </Modal>
 
@@ -324,7 +405,7 @@ export default function DiscussionPost({
         )}
         <Pressable
           onLongPress={() => {
-            if (isResolved || myId == Creator.id) setReactionModalVisible(true);
+            if (isResolved || myId == Creator.id || (!isResolved && myId != Creator.id)) setReactionModalVisible(true);
           }}
         >
           <View className="flex-row mt-0 items-center">
@@ -367,7 +448,8 @@ export default function DiscussionPost({
               </TouchableOpacity>
             ))}
           </View>
-          <View className="flex-row gap-[1px] -mb-2 ml-1 mt-[4px] ">
+          <View className="flex-row gap-[1px] -mb-2 ml-1 mt-[4px] justify-between ">
+            <View className="flex-row">
             {reaction.map((item, index) => (
               <View key={index} className="flex-row items-center">
                 <Image
@@ -385,26 +467,51 @@ export default function DiscussionPost({
                 </Text>
               </View>
             ))}
+            </View>
+            {/* vote */}
+            <View className="flex-row items-center">
+              <AntDesign name="like1" size={24} color="green" />
+              <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
+                {listUpvote.length}
+              </Text>
+              <AntDesign name="dislike1" size={24} color="red" />
+              <Text className="text-[16px] ml-[3px] mr-[5px] text-gray-400">
+                {listDownvote.length}
+              </Text>
+            </View>
           </View>
         </Pressable>
         {isResolved && (
           <>
             <View className="border-t border-gray-200 mt-4 mx-2"></View>
-            {(showAllComments ? comments : comments.slice(0, 3)).map((item, index) => (
-              <CommentQuestion
-                key={index}
-                id={item.id}
-                content={item.content}
-                createdAt={item.createdAt}
-                nameAnonymous={item.nameAnonymous}
-                creator={item.creator}
-                cAttendId={CAttendId as string}
-                handleDeletePost={handleDeletePost}
+            {(showAllComments ? comments : comments.slice(0, 3)).map(
+              (item, index) => (
+                <CommentQuestion
+                  key={index}
+                  id={item.id}
+                  content={item.content}
+                  createdAt={item.createdAt}
+                  nameAnonymous={item.nameAnonymous}
+                  creator={item.creator}
+                  cAttendId={CAttendId as string}
+                  handleDeletePost={handleDeletePost}
+                  upvotes={item.upvotes||[]}
+                  downvotes={item.downvotes||[]}
+                />
+              )
+            )}
+            <TouchableOpacity
+              className="items-center justify-end mt-2 flex-row -mb-2 mr-[5%]"
+              onPress={() => setShowAllComments(!showAllComments)}
+            >
+              <Text className="text-blue_primary mr-1 -mt-[2px]">
+                {showAllComments ? "Thu gọn" : "Xem thêm"}
+              </Text>
+              <SimpleLineIcons
+                name={showAllComments ? "arrow-up" : "arrow-down"}
+                size={12}
+                color={colors.blue_primary}
               />
-            ))}
-            <TouchableOpacity className="items-center justify-end mt-2 flex-row -mb-2 mr-[5%]" onPress={() => setShowAllComments(!showAllComments)}>
-              <Text className="text-blue_primary mr-1 -mt-[2px]">{showAllComments ? "Thu gọn" : "Xem thêm"}</Text>
-              <SimpleLineIcons name={showAllComments ? "arrow-up" : "arrow-down"}  size={12} color={colors.blue_primary} /> 
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
