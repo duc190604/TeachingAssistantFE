@@ -467,33 +467,22 @@ export default function RandomGroup() {
     setcheckScroll(true);
     await sendMessage("text", "");
   };
-  const leaveGroup = async () => {
-    setShowMenu(false);
-    const url = `${localHost}/api/v1/group/leave/${myGroup.id}`;
-    Alert.alert("Xác nhận", "Bạn có chắc chắn muốn rời nhóm không?", [
-      {
-        text: "Hủy",
-        style: "cancel",
+  const redirectReviewGroup = async () => {
+    if(!myGroup.reviewedBy || !myGroup.reviewedBy.id || !myGroup.reviewedBy.name)
+    {
+      setShowMenu(false);
+      Alert.alert("Thông báo", "Nhóm chưa được phân công chấm bài!");
+      return;
+    }
+    router.push({
+      pathname: "/(studentDetail)/classDetail/discussion/reviewGroup",
+      params: {
+        subjectId: subjectId,
+        name: name,
+        code: code,
+        group: JSON.stringify(myGroup.reviewedBy),
       },
-      {
-        text: "Đồng ý",
-        onPress: async () => {
-          setLoading(true);
-          const response = await deleteApi({ url: url, token: accessToken });
-          console.log("response: ", response);
-          if (response) {
-            if (response.status == 200) {
-              router.back();
-            } else {
-              Alert.alert("Thông báo", "Đã có lỗi xảy ra !");
-            }
-          }
-          setLoading(false);
-        },
-      },
-    ]);
-    setLoading(false);
-    return;
+    });
   };
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -645,6 +634,9 @@ export default function RandomGroup() {
               >
                 <Text className="font-mmedium text-base">Thành viên</Text>
               </TouchableOpacity>
+              <TouchableOpacity onPress={redirectReviewGroup}>
+                <Text className="font-mmedium text-base">Chấm điểm</Text>
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
@@ -709,7 +701,7 @@ export default function RandomGroup() {
                     key={member.id}
                     className="bg-gray-200 rounded-xl py-2 px-4 mt-2"
                   >
-                    <Text className="text-base">
+                    <Text className={`text-base ${member.id === myGroup.admin ? "text-red" : ""}`}>
                       {member.userCode} - {member.name}
                     </Text>
                   </View>

@@ -208,6 +208,7 @@ export default function RollCall({}: Props) {
     }
     if (!location) {
       setLoading(false);
+      Alert.alert("Thông báo", "Đã xảy ra lỗi khi lấy vị trí");
       return;
     }
 
@@ -222,32 +223,32 @@ export default function RollCall({}: Props) {
         index: index,
       };
       const res = await post({ url: url, token: accessToken, data: data });
-      if (res && (res.status == 201 || res.status == 200)) {
-        const record = res.data.attendRecord;
-        if (record.listStatus.find((item: any) => item.index == index && item.status == "CM")) {
-          // setAttends(
-          //   attends.map((item: Attend) =>
-          //     item.id == attend.id ? { ...item, status: "Đã điểm danh" } : item
-          //   )
-          // );
-          setIsReload(isReload + 1);
-          if (socketContext?.socket) {
-            socketContext.socket.emit("sendAttendance", {
-              subjectID: subjectId,
-              student: user?.id,
-              index: index,
-              status: record.status
-            });
+      if (res) {
+        if (res.status == 201 || res.status == 200) {
+          const record = res.data.attendRecord;
+          if (
+            record.listStatus.find(
+              (item: any) => item.index == index && item.status == "CM"
+            )
+          ) {
+            setIsReload(isReload + 1);
+            if (socketContext?.socket) {
+              socketContext.socket.emit("sendAttendance", {
+                subjectID: subjectId,
+                student: user?.id,
+                index: index,
+                status: record.status,
+              });
+            }
+            Alert.alert("Thông báo", "Điểm danh thành công");
+            setModalRollCallVisible(false);
+          } else {
+            Alert.alert("Thông báo", "Điểm danh không thành công");
           }
-          Alert.alert("Thông báo", "Điểm danh thành công");
-          setModalRollCallVisible(false);
-        }else{
-          Alert.alert("Thông báo", "Điểm danh không thành công");
+        } else {
+          Alert.alert("Thông báo", `${res?.data?.message || "Đã xảy ra lỗi"}`);
         }
-        
       }
-      else
-        Alert.alert("Thông báo", `${res?.data?.message}`);
     }
     setLoading(false);
   };

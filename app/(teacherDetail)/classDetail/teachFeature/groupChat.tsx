@@ -127,6 +127,7 @@ export default function GroupChat() {
   }, []);
   //Connect to socket
   useEffect(() => {
+    console.log(myGroup)
     if (socketContext) {
       console.log("socket: ", socketContext.socket.id);
       const { socket } = socketContext;
@@ -477,7 +478,7 @@ export default function GroupChat() {
                     key={member.id}
                     className="bg-gray-200 rounded-xl py-2 px-4 mt-2"
                   >
-                    <Text className="text-base">
+                    <Text className={`${member.id == myGroup?.admin ? "text-red" : "text-black"}`}>
                       {member.userCode} - {member.name}
                     </Text>
                   </View>

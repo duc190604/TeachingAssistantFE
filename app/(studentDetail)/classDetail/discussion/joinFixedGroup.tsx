@@ -82,7 +82,6 @@ export default function JoinFixedGroup({}: Props) {
       };
       setLoading(true);
       const response = await post({ url, data, token: accessToken });
-      console.log("response: ", response?.data);
       setLoading(false);
       if (response) {
         if (response.status == 200) {

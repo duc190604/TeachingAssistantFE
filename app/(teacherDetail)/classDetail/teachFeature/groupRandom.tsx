@@ -25,6 +25,8 @@ import get from "@/utils/get";
 import post from "@/utils/post";
 import Loading from "@/components/ui/Loading";
 import { formatNoWeekday } from "@/utils/formatDate";
+import Feather from "@expo/vector-icons/Feather";
+import deleteApi from "@/utils/delete";
 
 type Student = {
   id: string;
@@ -36,6 +38,7 @@ type Group = {
   id: string;
   name: string;
   members: Student[];
+  admin?: string;
 };
 
 export default function GroupRandom() {
@@ -113,6 +116,9 @@ export default function GroupRandom() {
   };
   const createGroup = async () => {
     setLoading(true);
+    if (numberOfGroup == "" || numberOfGroup == "0") {
+      return;
+    }
     const response = await post({
       url: `${localHost}/api/v1/group/random/create`,
       token: accessToken,
@@ -129,6 +135,7 @@ export default function GroupRandom() {
             id: item._id,
             name: item.name,
             members: item.members,
+            admin: item?.admin || "",
           }))
         );
         setAddGroupVisible(false);
@@ -144,6 +151,37 @@ export default function GroupRandom() {
       params: { subjectId, name, code, group: JSON.stringify(group) },
     });
   };
+  const deleteGroup = async () => {
+    if (listGroup.length == 0) {
+      Alert.alert("Thông báo", "Không có nhóm nào để xóa");
+      return;
+    }
+    Alert.alert("Thông báo", "Bạn có chắc chắn muốn xóa những nhóm này không?", [
+      {
+        text: "Hủy",
+        style: "cancel",
+      },
+      {
+        text: "Xóa",
+        onPress: async () => {
+          setLoading(true);
+          const response = await deleteApi({
+            url: `${localHost}/api/v1/group/randoms/${attendId}`,
+            token: accessToken,
+          });
+          if (response) {
+            if (response.status == 200) {
+              Alert.alert("Thông báo", "Xóa nhóm thành công");
+              setListGroup([]);
+            } else {
+              Alert.alert("Thông báo", "Xóa nhóm thất bại");
+            }
+          }
+          setLoading(false);
+        },
+      },
+    ]);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -153,12 +191,12 @@ export default function GroupRandom() {
       });
       if (response) {
         const groups = response.data.groups;
-        console.log("groups", groups);
         setListGroup(
           groups.map((item: any) => ({
             id: item._id,
             name: item.name,
             members: item.members,
+            admin: item?.admin || "",
           }))
         );
       }
@@ -172,7 +210,7 @@ export default function GroupRandom() {
         <TouchableOpacity onPress={router.back}>
           <Ionicons name="chevron-back-sharp" size={24} color="white" />
         </TouchableOpacity>
-        <View className="mx-auto items-center pr-6">
+        <View className="mx-auto items-center">
           <Text className="text-[18px] font-msemibold uppercase text-white">
             Chia nhóm
           </Text>
@@ -180,6 +218,11 @@ export default function GroupRandom() {
             {formatNoWeekday(date)}
           </Text>
         </View>
+        {listGroup.length > 0 && (
+          <TouchableOpacity onPress={deleteGroup}>
+            <Feather name="trash-2" size={24} color="red" />
+          </TouchableOpacity>
+        )}
       </View>
       {listGroup.length == 0 && (
         <View className=" justify-center items-center mt-[10%]">
@@ -318,9 +361,7 @@ export default function GroupRandom() {
             <Ionicons name="close" size={26} color="red" />
           </TouchableOpacity>
           <View className="mt-2 bg-white p-2 rounded-xl w-[80%] mx-auto px-4 pb-3">
-            <Text className="text-xl font-semibold text-center">
-              Chia nhóm
-            </Text>
+            <Text className="text-xl font-semibold text-center">Chia nhóm</Text>
             <Text className="mt-1">Số lượng nhóm</Text>
             <TextInput
               className="border border-gray-300 rounded-md p-1 pl-2 mt-2"

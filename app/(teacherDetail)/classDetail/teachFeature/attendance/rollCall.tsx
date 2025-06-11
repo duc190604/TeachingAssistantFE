@@ -66,10 +66,10 @@ export default function RollCall({}: Props) {
   const [time, setTime] = useState<number>(3);
   const [acceptedNumberPick, setAcceptedNumberPick] = useState<number>(1);
   const [checkLocation, setCheckLocation] = useState<boolean>(true);
-  const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  // const [location, setLocation] = useState<{
+  //   latitude: number;
+  //   longitude: number;
+  // } | null>(null);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [tabAutomation, setTabAutomation] = useState<boolean>(true);
   const [studentsPresent, setStudentsPresent] = useState<StudentPresent[]>([]);
@@ -91,6 +91,7 @@ export default function RollCall({}: Props) {
     setCheckLocation(true);
   };
   const getLocation = async () => {
+    console.log("getLocation");
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -98,11 +99,16 @@ export default function RollCall({}: Props) {
         return false;
       }
       let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation({
+      if(currentLocation)
+      {
+        return {
         latitude: currentLocation.coords.latitude,
         longitude: currentLocation.coords.longitude,
-      });
-      return true;
+      };
+      }else {
+        return false;
+      }
+      
     } catch {
       Alert.alert("Thông báo", "Đã xảy ra lỗi khi lấy vị trí");
       return false;
@@ -116,22 +122,29 @@ export default function RollCall({}: Props) {
       return;
     }
     setLoading(true);
+    let location: {
+      latitude: number;
+      longitude: number;
+    } | null = null;
     if (checkLocation && tabAutomation) {
       const check = await getLocation();
       if (!check) {
         setLoading(false);
+        Alert.alert("Thông báo", "Đã xảy ra lỗi khi lấy vị trí");
         return;
+      } else {
+        location = check;
       }
     } else {
-      setLocation({
+      location = {
         latitude: 0,
         longitude: 0,
-      });
+      };
     }
     let data = {
       isActive: "true", //Bắt đầu điểm danh
-      teacherLatitude: location?.latitude,
-      teacherLongitude: location?.longitude,
+      teacherLatitude: location?.latitude || 0,
+      teacherLongitude: location?.longitude || 0,
       timeExpired: time, //Thời gian hết hạn(đơn vị phút)
       numberOfAttend: numberOfAttend + 1,
       acceptedNumber: numberOfAttend + 1,
@@ -425,22 +438,29 @@ export default function RollCall({}: Props) {
   }
   const updateLastestRollCall= async ()=>{
     setLoading(true);
+    let location: {
+      latitude: number;
+      longitude: number;
+    } | null = null;
     if (checkLocation && tabAutomation) {
       const check = await getLocation();
       if (!check) {
         setLoading(false);
+        Alert.alert("Thông báo", "Đã xảy ra lỗi khi lấy vị trí");
         return;
+      } else {
+        location = check;
       }
     } else {
-      setLocation({
+      location = {
         latitude: 0,
         longitude: 0,
-      });
+      };
     }
     let data = {
       isActive: "true", //Bắt đầu điểm danh
-      teacherLatitude: location?.latitude,
-      teacherLongitude: location?.longitude,
+      teacherLatitude: location?.latitude || 0,
+      teacherLongitude: location?.longitude || 0,
       timeExpired: time, //Thời gian hết hạn(đơn vị phút)
     };
     let checkTab = false;

@@ -18,12 +18,14 @@ export type Attend={
       sessionNumber:number,
       date:string,
 }
-type Group={
-      id:string,
-      name:string,
-      members:string[],
-      cAttend:Attend,
-}
+type Group = {
+  id: string;
+  name: string;
+  members: string[];
+  cAttend: Attend;
+  reviewedBy?:Group;
+  admin?:string;
+};
 type Props = {}
 
 export default function listRoom({ }: Props) {
@@ -75,14 +77,18 @@ export default function listRoom({ }: Props) {
                 if(res.status==200 || res.status==304)
                   {
                 const data= res.data.groups;
+                console.log("data: ",data)
                 const listGroup= data.map((item:any)=>({
                   id:item._id,
                   name:item.name,
                   members:item.members,
                   cAttend:listAttend.find((attend:Attend)=>attend.id===item.cAttendId),
+                  reviewedBy:item?.reviewedBy||null,
+                  admin:item?.admin||item?.admin.id|| null
                 }))
                 setListRandomGroup(listGroup.sort((a:Group,b:Group)=>b.cAttend.sessionNumber-a.cAttend.sessionNumber))
                 setShowListRandomGroup(true)
+                setLoading(false)
               }else
               {
                 Alert.alert("Thông báo","Đã xảy ra lỗi")
@@ -153,6 +159,7 @@ export default function listRoom({ }: Props) {
         }
       }
       const goToRandomGroup = async(item:Group) => {
+        console.log("item: ",item)
         setShowListRandomGroup(false)
         router.push({
           pathname: "/classDetail/discussion/randomGroup",

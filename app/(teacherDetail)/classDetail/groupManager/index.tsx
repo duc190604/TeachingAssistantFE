@@ -19,6 +19,7 @@ type Group={
   id: string;
   name: string;
   members: Student[];
+  admin?: string;
 }
 export default function GroupManager() {
   const authContext = useContext(AuthContext);
@@ -112,6 +113,7 @@ export default function GroupManager() {
           id: item._id,
           name: item.name,
           members: item.members,
+          admin: item?.admin || "",
         })))
       }
     };

@@ -60,7 +60,7 @@ export type Message = {
   };
   createdAt: string;
   type: string;
- isRevoked: boolean;
+  isRevoked: boolean;
   updatedAt: string;
   __v: string;
   id: string;
@@ -70,7 +70,7 @@ type FormatName = {
   id: string;
   number: number;
 };
-export default function FixedGroup() {
+export default function ReviewGroup() {
   const authContext = useContext(AuthContext);
   const socketContext = useContext(SocketContext);
   const router = useRouter();
@@ -186,7 +186,7 @@ export default function FixedGroup() {
   const recallMessage = async (Id: string) => {
     setMessageList((prevList) =>
       prevList.map((item) =>
-        item._id === Id ? { ...item,isRevoked: true } : item
+        item._id === Id ? { ...item, isRevoked: true } : item
       )
     );
   };
@@ -194,8 +194,6 @@ export default function FixedGroup() {
   const renderMessage = () => {
     const list: JSX.Element[] = [];
     const totalMessages = messageList.length;
-    let numberName = 0;
-
     if (totalMessages === 0) {
       return (
         <Text className="mx-auto text-base text-blue_primary mt-[80%]">
@@ -285,6 +283,7 @@ export default function FixedGroup() {
     if (response) {
       if (response.status == 200) {
         const list = await response.data.groupMessages.reverse();
+        console.log("list: ",list)
         setMessageList(
           list.map((item: any) => ({
             _id: item._id,
@@ -303,227 +302,6 @@ export default function FixedGroup() {
     }
     setLoading(false);
   };
-
-  const sendMessage = async (Type: string, Content: string) => {
-    if (!Content || Content == "") {
-      Content = message;
-      setMessage("");
-    }
-
-    const dataPost = {
-      groupId: `${myGroup.id}`,
-      senderId: `${user?.id}`,
-      content: Type == "text" ? Content : "",
-      images: Type == "image" ? Content : "",
-    };
-    console.log("dataPost: ", dataPost);
-    if (user) {
-      const msg: Message = {
-        _id: "",
-        subjectId: `${subjectId}`,
-        content: Content,
-        senderId: {
-          name: user.name,
-          userCode: user.userCode,
-          role: user.role,
-          avatar: user.avatar,
-          id: user.id,
-        },
-        createdAt: `${new Date().toISOString()}`,
-        type: Type,
-       isRevoked: false,
-        updatedAt: `${new Date().toISOString()}`,
-        __v: "0",
-        id: "",
-      };
-      const url = `${localHost}/api/v1/group/message/create`;
-
-      const response = await post({
-        url: url,
-        data: dataPost,
-        token: accessToken,
-      });
-
-      if (response) {
-        if (response.status == 201) {
-          msg.id = response.data.groupMessage.id;
-          msg._id = response.data.groupMessage._id;
-          setMessageList((prevList) => [...prevList, msg]);
-          if (socketContext?.socket) {
-            const dataMsg = {
-              title: `${name}`, //Tên môn học
-              body: Type == "text" ? msg.content : "Đã gửi một ảnh", //Nội dung tin nhắn
-              type: "message", //Loại tin nhắn
-              senderId: user.id, //ID người gửi
-              sender: "Ẩn danh", //Tên người gửi
-              subject: `${name}`, //Tên môn học
-              room: "", //Phòng học
-            };
-            socketContext.socket.emit("sendMessageToSubject", {
-              subjectID: subjectId,
-              message: msg,
-              dataMsg: dataMsg,
-            });
-          }
-        }
-
-        if (response.status != 201) {
-          Alert.alert("Thông báo", "Không thể gửi tin nhắn !");
-          return false;
-        }
-      } else {
-        Alert.alert("Thông báo", "Không thể gửi tin nhắn !");
-        return false;
-      }
-    }
-  };
-
-  const uploadImage = async (imageUri: string, name: string) => {
-    const formData = new FormData();
-    const extension = imageUri.split(".").pop();
-    if (extension) {
-      const type = mime.lookup(extension);
-      if (type) {
-        formData.append("image", {
-          uri: imageUri,
-          type: type || "image/jpeg", // Mặc định là JPEG nếu không xác định được loại
-          name: name || "photo.jpg",
-        } as any);
-      }
-    }
-    const url = `${localHost}/api/v1/upload/image`;
-    try {
-      const response = await post({
-        url: url,
-        token: accessToken,
-        data: formData,
-      });
-      if (response) {
-        if (response.status == 200) {
-          const json = await response.data;
-          return json.image;
-        } else {
-          Alert.alert("Thông báo", "Không thể gửi");
-          return false;
-        }
-      }
-      return false;
-    } catch (error) {
-      Alert.alert("Thông báo", "Không thể gửi");
-      return false;
-    }
-  };
-  const handleChooseImage = async () => {
-    let image = [];
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: false,
-      allowsEditing: false,
-      quality: 0.4,
-    });
-    if (!result.canceled) {
-      setUploading(true);
-      const listImage = Array.from(result.assets);
-      for (let i = 0; i < listImage.length; i++) {
-        const currentTime = new Date();
-        const timestamp = currentTime.getTime();
-        let imageUri = await uploadImage(
-          listImage[i].uri,
-          "" + timestamp + user?.id
-        );
-        if (imageUri) {
-          image.push(imageUri);
-        }
-      }
-      const Image = image.join(" ");
-      // setMessage(Image);
-      if (image.length > 0) await sendMessage("image", Image);
-      // setMessage('');
-      setUploading(false);
-    }
-  };
-  const handleCamera = async () => {
-    let image;
-    let result = await ImagePicker.launchCameraAsync({
-      cameraType: ImagePicker.CameraType.back,
-      allowsEditing: false,
-      quality: 0.2,
-    });
-    if (!result.canceled) {
-      setUploading(true);
-      image = result.assets;
-      const currentTime = new Date();
-      const timestamp = currentTime.getTime();
-      const imageUrl = await uploadImage(
-        image[0].uri,
-        "" + timestamp + user?.id
-      );
-      if (imageUrl) {
-        sendMessage("image", imageUrl);
-        setMessage("");
-      }
-      setUploading(false);
-    }
-  };
-  //send
-  const handlesendQuestion = async () => {
-    setcheckScroll(true);
-    await sendMessage("text", "");
-  };
-  const leaveGroup = async () => {
-    setShowMenu(false);
-    const url = `${localHost}/api/v1/group/leave/${myGroup.id}`;
-    Alert.alert(
-      "Xác nhận",
-      "Bạn có chắc chắn muốn rời nhóm không?",
-      [
-        {
-          text: "Hủy",
-          style: "cancel"
-        },
-        {
-          text: "Đồng ý",
-          onPress: async () => {
-            setLoading(true);
-              const response = await deleteApi({ url: url, token: accessToken});
-              console.log("response: ", response);
-              if (response) {
-                if (response.status == 200) {
-                router.back();
-                } else {
-                  Alert.alert("Thông báo", "Đã có lỗi xảy ra !");
-                }
-              }
-              setLoading(false);
-          }
-        }
-      ]
-    );
-    setLoading(false);
-    return;
-  
-  };
-   const redirectReviewGroup = async () => {
-    console.log("myGroup: ", myGroup)
-     if (
-       !myGroup.reviewedBy ||
-       !myGroup.reviewedBy.id ||
-       !myGroup.reviewedBy.name
-     ) {
-       setShowMenu(false);
-       Alert.alert("Thông báo", "Nhóm chưa được phân công chấm bài!");
-       return;
-     }
-     router.push({
-       pathname: "/(studentDetail)/classDetail/discussion/reviewGroup",
-       params: {
-         subjectId: subjectId,
-         name: name,
-         code: code,
-         group: JSON.stringify(myGroup.reviewedBy),
-       },
-     });
-   };
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <View className="justify-center h-full flex-1 w-full ">
@@ -536,24 +314,9 @@ export default function FixedGroup() {
               {code}
             </Text>
             <Text className="mt-[-3px] text-white font-mmedium">
-              Nhóm - {myGroup.name}
+              {myGroup.name}
             </Text>
           </View>
-          <TouchableOpacity
-            className=""
-            onLayout={(event) => {
-              const { x, y } = event.nativeEvent.layout;
-              setPositionMenu({
-                x,
-                y,
-              });
-            }}
-            onPress={() => {
-              setShowMenu(true);
-            }}
-          >
-            <AntDesign name="exclamationcircleo" size={22} color="white" />
-          </TouchableOpacity>
         </View>
         <LinearGradient
           className="h-[1.2px] bg-[#F7F7F7]"
@@ -604,48 +367,7 @@ export default function FixedGroup() {
           </ScrollView>
         )}
         <LinearGradient className="h-[1px]" colors={["#fafafa", "#d6d4d4"]} />
-        <View className="h-[60px] w-[90%] ml-[5%] justify-center items-center flex-row">
-          {
-            <View className="flex-1 border rounded-3xl px-[10px] border-[#E6E6E6] p-[5px]">
-              <TextInput
-                value={message}
-                onChangeText={(e) => setMessage(e)}
-                multiline={true}
-                placeholder="Message"
-              />
-            </View>
-          }
 
-          {message.trim().length > 0 ? (
-            <TouchableOpacity onPress={handlesendQuestion}>
-              <Feather
-                name="send"
-                size={26}
-                color="gray"
-                style={{ marginLeft: 9, marginTop: 3 }}
-              />
-            </TouchableOpacity>
-          ) : (
-            <>
-              <TouchableOpacity onPress={handleCamera}>
-                <Feather
-                  name="camera"
-                  size={27}
-                  color="#767676"
-                  style={{ marginLeft: 10 }}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleChooseImage}>
-                <FontAwesome6
-                  name="image"
-                  size={24}
-                  color="#767676"
-                  style={{ marginLeft: 10 }}
-                />
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
         <Loading loading={isUploading} />
         <Modal
           animationType="fade"
@@ -673,9 +395,6 @@ export default function FixedGroup() {
               >
                 <Text className="font-mmedium text-base">Mã tham gia</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={leaveGroup}>
-                <Text className="font-mmedium text-base">Rời nhóm</Text>
-              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   setShowMember(true);
@@ -684,82 +403,10 @@ export default function FixedGroup() {
               >
                 <Text className="font-mmedium text-base">Thành viên</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={redirectReviewGroup}>
-                <Text className="font-mmedium text-base">Chấm điểm</Text>
-              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         </Modal>
-        {/* modal qr code */}
-        <Modal
-          visible={visibleQR}
-          transparent={true}
-          onRequestClose={() => setVisibleQR(false)}
-        >
-          <View
-            className="relative p-0 m-0 w-full h-full"
-            style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
-          >
-            <View className="flex-row absolute top-2 right-3 z-50">
-              <TouchableOpacity
-                className="ml-auto bg-gray-300/60 rounded-full w-[32px] h-[32px] items-center justify-center"
-                onPress={() => setVisibleQR(false)}
-              >
-                <AntDesign name="close" size={23} color="red" />
-              </TouchableOpacity>
-            </View>
-            <View className="w-full h-[85%] my-auto">
-              <Image
-                className="w-[90%] h-[90%] mx-auto"
-                source={{
-                  uri: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${joinCode}`,
-                }}
-                style={{ resizeMode: "contain" }}
-              />
-              <Text className="mx-auto text-white text-2xl">{joinCode}</Text>
-            </View>
-          </View>
-        </Modal>
-        {/* modal thanh vien */}
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={showMember}
-          onRequestClose={() => setShowMember(false)}
-        >
-          <View
-            className="flex-1 justify-center"
-            style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
-          >
-            <TouchableOpacity
-              className="ml-auto mr-3 -mb-1"
-              onPress={() => setShowMember(false)}
-            >
-              <Ionicons name="close" size={26} color="red" />
-            </TouchableOpacity>
-
-            <View className="mt-2 bg-white p-2 rounded-xl w-[90%] mx-auto px-4 pb-3">
-              <Text className="text-base font-semibold text-center">
-                {myGroup.name}
-              </Text>
-              <View className="flex-row items-center">
-                <Text className="text-base ml-1">Thành viên</Text>
-              </View>
-              <ScrollView className="max-h-[240px] pb-1">
-                {myGroup.members.map((member: any) => (
-                  <View
-                    key={member.id}
-                    className={`bg-gray-200 rounded-xl py-2 px-4 mt-2 `}
-                  >
-                    <Text className={`text-base ${member.id === myGroup.admin ? "text-red" : ""}`}>
-                      {member.userCode} - {member.name}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
+        
       </View>
     </KeyboardAvoidingView>
   );

@@ -23,6 +23,7 @@ export default function StudentDetailLayout({}: Props) {
         <Stack.Screen name='classDetail/discussion/fixedGroup' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/discussion/joinFixedGroup' options={{headerShown: false,}}/>
         <Stack.Screen name='classDetail/discussion/randomGroup' options={{headerShown: false,}}/>
+        <Stack.Screen name='classDetail/discussion/reviewGroup' options={{headerShown: false,}}/>
     </Stack>
   )
 }
