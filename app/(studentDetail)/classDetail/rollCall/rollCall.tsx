@@ -143,7 +143,7 @@ export default function RollCall({}: Props) {
         socket.on("receiveAttendance", (dataMsg: any) => {
           const newAttend = dataMsg.cAttend;
           setAttends((prev) => {
-            const newAttends = prev.map((item) => {
+            let newAttends = prev.map((item) => {
               if (item.id === newAttend.id) {
                 return {
                   ...item,
@@ -157,7 +157,10 @@ export default function RollCall({}: Props) {
             const isExisting = prev.some((item) => item.id === newAttend.id);
             if (!isExisting) {
               setTotalRollCall(totalRollCall + 1);
-              newAttends.unshift(newAttend);
+              newAttends.unshift({
+                ...newAttend,
+                listStatus: {},
+              });
             }
 
             return newAttends;

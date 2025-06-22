@@ -389,6 +389,31 @@ export default function DiscussionRoom() {
        socket.on('receiveDeleteMessage', (messageID: string) => {  
          setPostList((prevList) => prevList.filter((message) => message.id !== messageID));
        });
+      socket.on("receiveReaction", (object: any) => {
+         const reaction = object.reaction;
+         setPostList(prevList =>
+            prevList.map(post => {
+               if (post.id == reaction.discussionId) {
+                  const newReaction:Reaction = {
+                     type: reaction.type,
+                     discussionId: reaction.discussionId,
+                     id: reaction.id,
+                     userId: {
+                        id: reaction.userId.id,
+                        name: reaction.userId.name,
+                        userCode: reaction.userId.userCode,
+                        avatar: reaction.userId.avatar
+                     }
+                  }
+                  return {
+                     ...post,
+                     reactions: [...post.reactions, newReaction]
+                  };
+               }
+               return post;
+            })
+         );
+      });
     }
   }
   return () => {
@@ -398,7 +423,7 @@ export default function DiscussionRoom() {
         socket.emit('leaveSubject', { userID: user?.id,subjectID: cAttendId });
         socket.off('receiveSubjectMessage');
          socket.off('receiveResolve');
-         socket.off('receiveDelete=Message');
+         socket.off('receiveDeleteMessage');
       }
     }
   };
