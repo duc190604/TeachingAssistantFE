@@ -269,6 +269,13 @@ export default function DiscussionPost({
       if (response) {
         if (response.status == 201) {
           addComment(response.data.discussion);
+          if(socketContext){
+           const { socket } = socketContext;
+           socket.emit('sendReply', {
+            subjectID: CAttendId,
+            message: response.data.discussion
+           })
+          }
         } else {
           Alert.alert("Thông báo", "Không thể gửi");
         }
