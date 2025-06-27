@@ -129,6 +129,11 @@ export default function DiscussionPost({
   useEffect(() => {
     resetReaction();
   }, [isResolved, reactions]);
+  useEffect(() => {
+    setListUpvote(upvotes);
+    setListDownvote(downvotes);
+    setMyVote( Creator.id == myId ? null : upvotes.includes(myId || "") ? "upvote" : downvotes.includes(myId || "") ? "downvote" : null    );
+  }, [upvotes, downvotes, Creator.id, myId]);
   const handleDownload = async (imageUrl: string) => {
     try {
       await Linking.openURL(imageUrl);
@@ -282,6 +287,17 @@ export default function DiscussionPost({
       });
       if (res) {
         if (res.status == 200) {
+          if (socketContext) {
+            const { socket } = socketContext;
+            socket.emit("sendVote", {
+              subjectID: CAttendId,
+              message: {
+                discussionId: Id,
+                type: type,
+                userId: myId || "",
+              },  
+            });
+          }
           if(!myVote)
           {
             setMyVote(type);
@@ -320,7 +336,7 @@ export default function DiscussionPost({
    
   };
   return (
-    <View className="w-full ">
+    <View className="w-full mt-2 ">
       <Modal
         animationType="fade"
         transparent={true}

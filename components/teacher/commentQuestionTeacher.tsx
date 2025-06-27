@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { images } from "@/constants/image";
 import { AuthContext } from "@/context/AuthContext";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Pressable } from "react-native";
 import deleteApi from "@/utils/delete";
 import { localHost } from "@/utils/localhost";
@@ -60,6 +60,10 @@ export default function CommentQuestionTeacher({
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [listUpvote, setListUpvote] = useState<string[]>(upvotes);
   const [listDownvote, setListDownvote] = useState<string[]>(downvotes);
+  useEffect(() => {
+    setListUpvote(upvotes);
+    setListDownvote(downvotes);
+  }, [upvotes, downvotes]);
   const deletePost = async () => {
     const res = await deleteApi({
       url: `${localHost}/api/v1/discussion/delete/${id}`,

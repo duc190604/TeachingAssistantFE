@@ -126,6 +126,11 @@ export default function postDiscussionTeacher({
   useEffect(() => {
     resetReaction();
   }, [reactions]);
+  useEffect(() => {
+    setListUpvote(upvotes);
+    setListDownvote(downvotes)
+    setReply(isResolved);
+  }, [upvotes, downvotes,isResolved]);
   const handleDownload = async (imageUrl: string) => {
     try {
       await Linking.openURL(imageUrl);
@@ -178,12 +183,6 @@ export default function postDiscussionTeacher({
       }
     }
   };
-  useEffect(() => {
-    if (socketContext) {
-      const { socket } = socketContext;
-      //socket.emit('joinSubject', { userID: user?.id,subjectID: CAttendId });
-    }
-  }, []);
   return (
     <View className="w-full ">
       {/* modal phản hồi */}
@@ -430,10 +429,10 @@ export default function postDiscussionTeacher({
             </View>
           </View>
         </Pressable>
-        {isResolved && (
+        {reply&& (
           <>
             <View className="border-t border-gray-200 mt-4 mx-2"></View>
-            {(showAllComments ? comments : comments.slice(0, 3)).map(
+            {(showAllComments ? comments.reverse() : comments.reverse().slice(0, 3)).map(
               (item, index) => (
                 <CommentQuestionTeacher
                   key={index}

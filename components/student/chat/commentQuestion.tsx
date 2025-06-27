@@ -1,7 +1,7 @@
 import { View, Text, Image, Alert, Modal, TouchableOpacity } from "react-native";
 import { images } from "@/constants/image";
 import { AuthContext } from "@/context/AuthContext";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Pressable } from "react-native";
 import deleteApi from "@/utils/delete";
 import { localHost } from "@/utils/localhost";
@@ -47,6 +47,17 @@ export default function CommentQuestion({id, content, createdAt, nameAnonymous, 
   );
   const [listUpvote, setListUpvote] = useState<string[]>(upvotes);
   const [listDownvote, setListDownvote] = useState<string[]>(downvotes);
+  useEffect(() => {
+    setListUpvote(upvotes);
+    setListDownvote(downvotes);
+    setMyVote(creator.id == user?.id
+      ? null
+      : upvotes.includes(user?.id || "")
+      ? "upvote"
+      : downvotes.includes(user?.id || "")
+      ? "downvote"
+      : null);
+  }, [upvotes, downvotes]);
   const deletePost = async () => {
     if (user?.id == creator.id) {
       const res = await deleteApi({
@@ -80,6 +91,17 @@ export default function CommentQuestion({id, content, createdAt, nameAnonymous, 
       });
       if (res) {
         if (res.status == 200) {
+          if (socketContext) {
+            const { socket } = socketContext;
+            socket.emit("sendVote", {
+              subjectID: cAttendId,
+              message: {
+                discussionId: id,
+                type: type,
+                userId: user?.id || "",
+              },  
+            });
+          }
           if (!myVote) {
             setMyVote(type);
             if (type == "upvote") {
