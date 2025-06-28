@@ -1,5 +1,5 @@
 import { getAPI } from "@/utils/api";
-import { View, Text, ScrollView, Alert, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, Alert, TouchableOpacity, RefreshControl } from "react-native";
 import { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "@/context/AuthContext";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -31,57 +31,6 @@ export type NotificationData={
   updatedAt?: string,
 }
 
-const exampleData: NotificationData[] = [
-    {
-        id: "1",
-        notificationId: {
-            senderId: "1",
-            title: "Thông báo 1",
-            content: "Nội dung thông báo 1",
-            type: "absent_warning",
-            referenceModel: "",
-            referenceId: "",
-            createdAt: "2023-10-02",
-            updatedAt: "2023-10-02",
-        },
-        receiverId: "1",
-        isRead: false,
-        createdAt: "2023-10-02",       
-    },
-    {
-        id: "2",
-        notificationId: {
-            senderId: "1",
-            title: "Thông báo 2",
-            content: "Nội dung thông báo 2",
-            type: "",
-            referenceModel: "student",
-            referenceId: "1",
-            createdAt: "2023-10-02",
-            updatedAt: "2023-10-02",
-        },
-        receiverId: "1",
-        isRead: false,
-        createdAt: "2023-10-02",       
-    },
-    {
-        id: "3",
-        notificationId: {
-            senderId: "1",
-            title: "Thông báo 3",
-            content: "Nội dung thông báo 3",
-            type: "absence_request",
-            referenceModel: "AbsenceRequest",
-            referenceId: "1",
-            createdAt: "2023-10-02",
-            updatedAt: "2023-10-02",
-        },
-        receiverId: "1",
-        isRead: false,
-        createdAt: "2023-10-02",       
-    }
-];
-
 export default function Notification() {
   const router = useRouter();
     const authContext = useContext(AuthContext);
@@ -91,6 +40,8 @@ export default function Notification() {
     }
     const { user, accessToken } = authContext
     const [notification,setNotification]= useState<NotificationData[]>([])
+    const [refreshing, setRefreshing] = useState(false);
+
     const getNotification= async()=>{
         const url = `${localHost}/api/v1/notification/get`; 
         const token = accessToken;
@@ -110,9 +61,14 @@ export default function Notification() {
                 Alert.alert("Thông báo","Đã xảy ra lỗi, vui lòng thử lại sau !")
             }
         }
-        else
-          setNotification(exampleData);
     }
+
+    const onRefresh = async () => {
+      setRefreshing(true);
+      await getNotification();
+      setRefreshing(false);
+    };
+
     useFocusEffect(
       useCallback(() => {
         getNotification();
@@ -125,7 +81,11 @@ export default function Notification() {
           Thông báo
         </Text>
       </View>
-      <ScrollView className="mb-24">
+      <ScrollView className="mb-24"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {notification.length > 0 ? (
           notification.map((item) => (
             <TouchableOpacity 

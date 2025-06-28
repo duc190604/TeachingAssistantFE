@@ -182,6 +182,19 @@ export default function RollCall({}: Props) {
     };
   }, [socketContext]);
   const router = useRouter();
+  const getStatusColor = (status: string) => {
+  if (status.includes('Vắng có phép')) return 'text-orange-500';
+  if (status.includes('Vắng không phép')) return 'text-red-500';
+
+  const match = status.match(/Đã điểm danh (\d+)\/(\d+)/);
+  if (match) {
+    const [_, attended, total] = match.map(Number);
+    if (attended === 0 || attended < total) return 'text-yellow-500';
+    if (attended === total) return 'text-green';
+  }
+
+  return 'text-gray-600'; // default fallback
+};
   const getLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -353,9 +366,9 @@ export default function RollCall({}: Props) {
                   <Text>
                     Buổi {item.sessionNumber} - {formatNoWeekday(item.date)}
                   </Text>
-                  <Text className="text-green text-base font-mmedium mt-1">
-                    {item.status}
-                  </Text>
+                  <Text className={`text-base font-medium mt-1 ${getStatusColor(item.status)}`}>
+  {item.status}
+</Text>
                 </View>
               </View>
               </TouchableOpacity>

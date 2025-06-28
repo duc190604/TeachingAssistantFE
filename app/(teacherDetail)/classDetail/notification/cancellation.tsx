@@ -116,6 +116,7 @@ export default function Cancellation({}: Props) {
                 placeholder="Nhập lý do"
                 multiline
                 value={reason}
+                onChangeText={setReason}
                 textAlignVertical="top"
                 numberOfLines={4}>
               </TextInput>
