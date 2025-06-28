@@ -255,7 +255,7 @@ export default function GroupRandom() {
               >
                 <Text className="font-semibold text-base">{item.name}</Text>
                 {item.members.map((member, index) => (
-                  <Text key={index} className="text-base mt-[2px]">
+                  <Text key={index} className={`text-base mt-[2px] ${member.id === item.admin ? "text-red" : ""}`}>
                     {index + 1}. {member.userCode} - {member.name}
                   </Text>
                 ))}
