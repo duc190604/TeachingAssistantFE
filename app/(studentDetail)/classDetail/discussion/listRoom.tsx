@@ -229,7 +229,7 @@ export default function listRoom({ }: Props) {
                 Đặt câu hỏi
               </Text>
             )}
-            <ScrollView className="mt-2">
+            <ScrollView className="mt-2 h-[380px]">
               {listAttend.length > 0 &&
                 listAttend.map((channel, index) => {
                   return (
