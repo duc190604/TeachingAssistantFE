@@ -266,6 +266,7 @@ export default function Discussion() {
       setLoading(false);
    };
    const handleDeletePost = (Id: string) => {
+      socketContext?.socket?.emit('sendDeleteMessage', { subjectID: cAttendId, messageID: Id });
       setPostList(prevList => prevList.filter(item => item.id != Id));
    };
    const kickStudent = async (studentId: string) => {

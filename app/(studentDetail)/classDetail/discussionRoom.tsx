@@ -358,6 +358,7 @@ export default function DiscussionRoom() {
       }
    };
    const handleDeletePost = (Id: string) => {
+      socketContext?.socket?.emit('sendDeleteMessage', { subjectID: cAttendId, messageID: Id });
       setPostList(prevList => prevList.filter(item => item.id != Id));
    };
    useEffect(() => {
@@ -426,7 +427,7 @@ export default function DiscussionRoom() {
                socket.emit('leaveSubject', { userID: user?.id, subjectID: cAttendId });
                socket.off('receiveSubjectMessage');
                socket.off('receiveResolve');
-               socket.off('receiveDelete=Message');
+               socket.off('receiveDeleteMessage');
                socket.off('receiveReply');
                socket.off('receiveVote');
             }
@@ -481,7 +482,6 @@ export default function DiscussionRoom() {
          }
       }])
       if (socketContext?.socket) {
-         console.log("socketContext.socket: ", subjectId);
          const { socket } = socketContext;
          socket.emit("sendReply", {
             subjectID: cAttendId,

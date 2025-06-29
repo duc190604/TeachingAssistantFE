@@ -108,6 +108,11 @@ export default function GeneralRoom() {
             )
           );
         });
+        socket.on("receiveDeleteMessage", (messageID: string) => {
+          setQuestionList((prevList) =>
+            prevList.filter((message) => message._id !== messageID)
+          );
+        });
       }
     }
     return () => {
@@ -120,6 +125,7 @@ export default function GeneralRoom() {
           });
           socket.off("receiveSubjectMessage");
           socket.off("receiveRevokedMessage");
+          socket.off("receiveDeleteMessage");
         }
       }
     };
