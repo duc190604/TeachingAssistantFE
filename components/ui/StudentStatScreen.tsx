@@ -54,6 +54,7 @@ export default function StudentStatScreen({
               <UserStatCard
                 user={item.user}
                 type='discussions'
+                statKey={item.user._id}
                 key={item.user._id}
                 value={item.totalDiscussions}
                 top={i+1}
@@ -67,6 +68,7 @@ export default function StudentStatScreen({
               <UserStatCard
                 user={item.user}
                 type='reviews'
+                statKey={item.user._id}
                 key={item.user._id}
                 value={item.reviewCount} 
                 top={i+1}
@@ -80,6 +82,7 @@ export default function StudentStatScreen({
               <UserStatCard
                 user={item.user}
                 type='reactions'
+                statKey={item.user._id}
                 key={item.user._id}
                 value={item.totalReactions}
                 top={i+1}

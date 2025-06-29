@@ -16,9 +16,9 @@ const mapping: Record<string, string> = {
     absences: 'buổi'
 };
 
-export default function UserStatCard({ user, type, key, value, top }: { user: UserStat; type: string; key: string; value: number; top: number }) {
+export default function UserStatCard({ user, type, statKey, value, top }: { user: UserStat; type: string; statKey: string; value: number; top: number }) {
   return (
-    <View key={key} className="flex-row items-center py-3 border-b border-gray-200">
+    <View key={statKey} className="flex-row items-center py-3 border-b border-gray-200">
       <Image
         source={user.avatar ? { uri: user.avatar } : images.avatarDefault}
         className="w-12 h-12 rounded-full mr-4"

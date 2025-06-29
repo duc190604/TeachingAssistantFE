@@ -91,6 +91,7 @@ export default function Absence({ }: Props) {
               <UserStatCard
                 user={item.user}
                 type='absences'
+                statKey={item.user._id}
                 key={item.user._id}
                 value={item.totalAbsences}
                 top={i + 1}

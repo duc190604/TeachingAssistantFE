@@ -142,7 +142,7 @@ export default function GroupManager() {
           otherStyle="mt-[5%] w-[50%]"
         /> */}
         <View>
-          <Text className="text-center font-semibold text-base mt-2">
+          <Text className="text-center font-bold text-base mt-2">
             Danh sách nhóm
           </Text>
         </View>
@@ -153,7 +153,7 @@ export default function GroupManager() {
               onPress={() => redirectToGroupChat(item)}
               className="w-[90%] bg-white rounded-xl mx-auto px-5 pt-2 pb-3 mb-3"
             >
-              <Text className="font-semibold text-base">{item.name}</Text>
+              <Text className="font-bold text-base">{item.name}</Text>
               {item.members.map((member, index) => (
                 <Text key={index} className={`text-base mt-[2px] ${member.id === item.admin ? "text-red" : ""}`}>
                   {index + 1}. {member.userCode} - {member.name}
