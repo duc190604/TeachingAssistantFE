@@ -78,7 +78,7 @@ export default function GroupChat() {
     return;
   }
   const { user, accessToken } = authContext;
-  const { subjectId, name, code, group } = useLocalSearchParams();
+  const { subjectId, name, code, group, type } = useLocalSearchParams();
   const scrollViewRef = useRef<ScrollView>(null);
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
@@ -127,7 +127,6 @@ export default function GroupChat() {
   }, []);
   //Connect to socket
   useEffect(() => {
-    console.log(myGroup)
     if (socketContext) {
       console.log("socket: ", socketContext.socket.id);
       const { socket } = socketContext;
@@ -398,14 +397,16 @@ export default function GroupChat() {
                 left: positionMenu.x - 135,
               }}
             >
-              <TouchableOpacity
+              {type == "fixed" && 
+              (<TouchableOpacity
                 onPress={() => {
                   setVisibleQR(true);
                   setShowMenu(false);
                 }}
               >
                 <Text className="font-mmedium text-base">Mã tham gia</Text>
-              </TouchableOpacity>
+              </TouchableOpacity>)
+               }
               <TouchableOpacity
                 onPress={() => {
                   setShowMember(true);

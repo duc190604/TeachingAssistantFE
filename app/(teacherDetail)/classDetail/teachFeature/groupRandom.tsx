@@ -148,7 +148,7 @@ export default function GroupRandom() {
   const redirectToGroupChat = (group: Group) => {
     router.push({
       pathname: "/(teacherDetail)/classDetail/teachFeature/groupChat",
-      params: { subjectId, name, code, group: JSON.stringify(group) },
+      params: { subjectId, name, code, group: JSON.stringify(group), type: "random" },
     });
   };
   const deleteGroup = async () => {

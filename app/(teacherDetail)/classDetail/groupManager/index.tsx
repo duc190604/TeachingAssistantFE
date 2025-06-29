@@ -98,7 +98,7 @@ export default function GroupManager() {
   const redirectToGroupChat = (group: Group) => {
     router.push({
       pathname: "/(teacherDetail)/classDetail/teachFeature/groupChat",
-      params: { code, name, subjectId, group: JSON.stringify(group) },
+      params: { code, name, subjectId, group: JSON.stringify(group), type: "fixed" },
     });
   };
   useEffect(() => {

@@ -408,13 +408,10 @@ export default function RollCall({}: Props) {
     return count;
   };
   const checkPresent = (student: Student) => {
-    console.log("student", student);
-
    if(student.status=="CP")
    {
     return "CP"
    }
-   console.log("student.listStatus", Object.values(student.listStatus));
    const count = Object.values(student.listStatus).filter((item: any) => item == "CM").length;
    if(count>=acceptedNumber)
    {
