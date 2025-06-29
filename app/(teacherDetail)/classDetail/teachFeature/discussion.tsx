@@ -356,6 +356,13 @@ export default function Discussion() {
             socket.on('receiveDeleteMessage', (messageID: string) => {
                setPostList((prevList) => prevList.filter((message) => message.id !== messageID));
             });
+            socket.on('receiveRevokedMessage', (messageID: string) => {
+               setPostList((prevList) =>
+                  prevList.map((item) =>
+                     item.id === messageID ? { ...item, content: "Thảo luận đã bị thu hồi" } : item
+                  )
+               );
+            });
             socket.on('receiveReply', (reply: Discussion) => {
                if (reply.creator.id != user?.id) {
                   setPostList((postList) => [...postList, reply]);
@@ -399,6 +406,7 @@ export default function Discussion() {
                socket.off("receiveDeleteMessage");
                socket.off("receiveReply");
                socket.off("receiveVote");
+               socket.off("receiveRevokedMessage");
             }
          }
       };

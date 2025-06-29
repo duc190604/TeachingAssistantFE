@@ -105,6 +105,13 @@ export default function Chat() {
             setQuestionList((prevList) => [...prevList, message]);
           scrollViewRef.current?.scrollToEnd({ animated: true });
         });
+        socket.on("receiveRevokedMessage", (messageID: string) => {
+          setQuestionList((prevList) =>
+            prevList.map((item) =>
+              item._id === messageID ? { ...item, isResolved: true } : item
+            )
+          );
+        });
       }
     }
     return () => {
@@ -116,6 +123,7 @@ export default function Chat() {
             subjectID: subjectId,
           });
           socket.off("receiveSubjectMessage");
+          socket.off("receiveRevokedMessage");
         }
       }
     };
@@ -334,6 +342,12 @@ export default function Chat() {
   };
   const handleDeleteChat = (Id: string) => {
     const msgList = questionList.filter((value) => value._id != Id);
+    if (socketContext?.socket) {
+      socketContext.socket.emit("sendDeleteMessage", {
+        subjectID: subjectId,
+        messageID: Id,
+      });
+    }
     setQuestionList(msgList);
   };
 
