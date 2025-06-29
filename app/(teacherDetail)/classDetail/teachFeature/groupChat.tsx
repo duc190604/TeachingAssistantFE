@@ -137,6 +137,13 @@ export default function GroupChat() {
             setMessageList((prevList) => [...prevList, message]);
           scrollViewRef.current?.scrollToEnd({ animated: true });
         });
+        socket.on("receiveRevokedMessage", (messageID: string) => {
+          setMessageList((prevList) =>
+            prevList.map((item) =>
+              item._id === messageID ? { ...item, isRevoked: true } : item
+            )
+          );
+        });
       }
     }
     return () => {
@@ -148,6 +155,7 @@ export default function GroupChat() {
             subjectID: subjectId,
           });
           socket.off("receiveSubjectMessage");
+          socket.off("receiveRevokedMessage");
         }
       }
     };
@@ -184,6 +192,10 @@ export default function GroupChat() {
     return diffMinutes > 5;
   };
   const recallMessage = async (Id: string) => {
+    socketContext?.socket?.emit("sendRevokedMessage", {
+      subjectID: subjectId,
+      messageID: Id,
+    });
     setMessageList((prevList) =>
       prevList.map((item) =>
         item._id === Id ? { ...item, isRevoked: true } : item

@@ -101,6 +101,13 @@ export default function GeneralRoom() {
             setQuestionList((prevList) => [...prevList, message]);
           scrollViewRef.current?.scrollToEnd({ animated: true });
         });
+        socket.on('receiveRevokedMessage', (messageID: string) => {
+          setQuestionList((prevList) =>
+            prevList.map((item) =>
+              item._id === messageID ? { ...item, isResolved: true } : item
+            )
+          );
+        });
       }
     }
     return () => {
@@ -112,6 +119,7 @@ export default function GeneralRoom() {
             subjectID: subjectId,
           });
           socket.off("receiveSubjectMessage");
+          socket.off("receiveRevokedMessage");
         }
       }
     };
@@ -170,6 +178,10 @@ export default function GeneralRoom() {
     return diffMinutes > 5;
   };
   const recallQuestion = async (Id: string) => {
+    socketContext?.socket?.emit("sendRevokedMessage", {
+      subjectID: subjectId,
+      messageID: Id,
+    });
     setQuestionList((prevList) =>
       prevList.map((item) =>
         item._id === Id ? { ...item, isResolved: true } : item

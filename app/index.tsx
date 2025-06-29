@@ -47,7 +47,12 @@ export default function index(){
                         return;
                     }
                     else
-                    if(remoteMessage.data?.type!='message' && remoteMessage.data?.sender!=user?.id)
+                        if(remoteMessage.data?.type!='message' && remoteMessage.data?.sender!=user?.id)
+                        {
+                            Alert.alert(`${remoteMessage.notification?.title}`, remoteMessage.notification?.body);
+                            return;
+                        }
+                    if(remoteMessage.data?.type=='cross-grading' && remoteMessage.data?.sender!=user?.id)
                     {
                         Alert.alert(`${remoteMessage.notification?.title}`, remoteMessage.notification?.body);
                         return;
